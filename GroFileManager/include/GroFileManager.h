@@ -22,6 +22,17 @@ namespace GroFileManager{
 		const std::vector<std::vector<double > > & posi,
 		const std::vector<std::vector<double > > & velo,
 		const std::vector<double > & boxsize);
+    
+    template <typename UnitaryFunction1, typename UnitaryFunction2,
+	      typename UnitaryFunction3, typename UnitaryFunction4,
+	      typename UnitaryFunction5, typename UnitaryFunction6>
+    bool writePotenFile (const double & rmin, const double & rcut, 
+			 const double & interval,
+			 UnitaryFunction1 & f, UnitaryFunction2 & fp,
+			 UnitaryFunction3 & g, UnitaryFunction4 & gp,
+			 UnitaryFunction5 & h, UnitaryFunction6 & hp,
+			 const std::string & filename);
+    
 };
 
 
