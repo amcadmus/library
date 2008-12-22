@@ -1,0 +1,1 @@
+g++ main.cpp -I/home/wang/intel/mkl/8.0.1/include 	-L/home/wang/intel/mkl/8.0.1/lib/32 -lmkl_lapack -lmkl_ia32 -lguide -lpthread 

@@ -1,0 +1,31 @@
+-*- mode: compilation; default-directory: "~/study/library/lq/" -*-
+Compilation started at Sat Aug 16 15:57:39
+
+make
+g++ -g -v LQFactorization.cpp -Wall -I/people/thnfs/homes/wanghan/local/intel/mkl/10.0.3.020/include -L/people/thnfs/homes/wanghan/local/intel/mkl/10.0.3.020/lib/em64t -lmkl_lapack -lm -lmkl -lguide -lpthread 
+Using built-in specs.
+Target: x86_64-suse-linux
+Configured with: ../configure --enable-threads=posix --prefix=/usr --with-local-prefix=/usr/local --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,java,ada --enable-checking=release --with-gxx-include-dir=/usr/include/c++/4.2.1 --enable-ssp --disable-libssp --disable-libgcj --with-slibdir=/lib64 --with-system-zlib --enable-shared --enable-__cxa_atexit --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --program-suffix=-4.2 --enable-version-specific-runtime-libs --without-system-libunwind --with-cpu=generic --host=x86_64-suse-linux
+Thread model: posix
+gcc version 4.2.1 (SUSE Linux)
+ /usr/lib64/gcc/x86_64-suse-linux/4.2.1/cc1plus -quiet -v -I/people/thnfs/homes/wanghan/local/intel/mkl/10.0.3.020/include -D_GNU_SOURCE LQFactorization.cpp -quiet -dumpbase LQFactorization.cpp -mtune=generic -auxbase LQFactorization -g -Wall -version -o /tmp/ccpgBUfw.s
+#include "..." search starts here:
+#include <...> search starts here:
+ /people/thnfs/homes/wanghan/local/intel/mkl/10.0.3.020/include
+ /usr/include/c++/4.2.1
+ /usr/include/c++/4.2.1/x86_64-suse-linux
+ /usr/include/c++/4.2.1/backward
+ /usr/local/include
+ /usr/lib64/gcc/x86_64-suse-linux/4.2.1/include
+ /usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../../../x86_64-suse-linux/include
+ /usr/include
+End of search list.
+GNU C++ version 4.2.1 (SUSE Linux) (x86_64-suse-linux)
+	compiled by GNU C version 4.2.1 (SUSE Linux).
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+Compiler executable checksum: 979b58a3c042510eb55948df80d07577
+ /usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../../../x86_64-suse-linux/bin/as -V -Qy -o /tmp/ccQCrPrz.o /tmp/ccpgBUfw.s
+GNU assembler version 2.17.50 (x86_64-suse-linux) using BFD version (GNU Binutils) 2.17.50.20070726-14 (SUSE Linux)
+ /usr/lib64/gcc/x86_64-suse-linux/4.2.1/collect2 --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 /usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/4.2.1/crtbegin.o -L/people/thnfs/homes/wanghan/local/intel/mkl/10.0.3.020/lib/em64t -L/usr/lib64/gcc/x86_64-suse-linux/4.2.1 -L/usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../.. /tmp/ccQCrPrz.o -lmkl_lapack -lmkl -lguide -lpthread -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-suse-linux/4.2.1/crtend.o /usr/lib64/gcc/x86_64-suse-linux/4.2.1/../../../../lib64/crtn.o
+
+Compilation finished at Sat Aug 16 15:57:40
