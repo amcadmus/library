@@ -6,7 +6,10 @@ boost-include-path=	/people/thnfs/homes/wanghan/local/include/boost-1_36
 boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
 boost-lib-option=	-lboost_program_options
 
+install_base_dir=	/home/wanghan/
+
 sources := 	$(wildcard src/*.cpp)
+heads :=	$(wildcard include/*.h)
 tmp_sources =  	$(notdir $(sources))
 tmp_depends = 	$(subst .cpp,.d,$(tmp_sources))
 tmp_objects = 	$(subst .cpp,.o,$(tmp_sources))
@@ -29,14 +32,20 @@ CXXFLAGS +=	-g -O3 -Wall -march=i686 -DVERBOSE_INFO
 CXXFLAGS += 	$(CFLAGS)
 CXXFLAGS += 	$(addprefix -I ,$(include_dirs))
 
-target:		$(objects_dir)/GroFileManager.a
+target:		$(objects_dir)/libGroFileManager.a
 
-$(objects_dir)/GroFileManager:	$(objects) 
-	ar cr $< $@
+$(objects_dir)/libGroFileManager.a: $(objects)
+	ar cr $@ $^
 
 .PHONY: clean
 clean:
 	rm -f $(objects) $(depends) 
+
+install:
+	rm -f $(install_base_dir)/$(heads) ;			\
+	rm -f $(install_base_dir)/lib/libGroFileManager.a;	\
+	cp -f lib/libGroFileManager.a $(install_base_dir)/lib; 	\
+	cp -f include/*.h $(install_base_dir)/include;		
 
 ifneq "$(MAKECMDGOALS)" "clean"
 -include $(depends)

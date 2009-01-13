@@ -26,12 +26,9 @@ bool GroFileManager::writePotenFile (const double & rmin, const double & rcut,
     nx = int(upper / interval);
   upper = interval * nx;
   
-  double maxv = 1e10;
-  
   int i = 0;
   for (i = 0; i <= nx + 1; ++i){
     double x = i * interval;
-    double z= 0;
     if (x < rmin){
       fprintf (filep, "%.12e\t%.12e\t%.12e\t%.12e\t%.12e\t%.12e\t%.12e\n",
 	       x, 0., 0., 0., 0., 0., 0.);
@@ -119,7 +116,7 @@ void GroFileManager::write (const std::string & name ,
   std::copy (atomname.begin(), atomname.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
   
   fprintf (fp, "\n%d\n", resdindex.size());
-  for (int i = 0; i < resdindex.size(); ++i){
+  for (int i = 0; i < int(resdindex.size()); ++i){
     fprintf (fp, "%5d%5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f\n",
 	     resdindex[i], (char *)(resdname[i].c_str()), (char *)(atomname[i].c_str()), atomindex[i], 
 	     posi[i][0], posi[i][1], posi[i][2],
