@@ -59,7 +59,7 @@ makedir:
 ifneq "$(MAKECMDGOALS)" "clean"
 -include $(cppdepends)
 -include $(cdepends)
--include $(application_dir)/$(notdir $(subst .c,.d,$(wildcard $(application_dir)/*.cpp)))
+-include $(application_dir)/$(notdir $(subst .cpp,.d,$(wildcard $(application_dir)/*.cpp)))
 endif
 
 # $(call make-depend,source-file,object-file,depend-file)
