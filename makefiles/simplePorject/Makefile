@@ -2,13 +2,14 @@
 #tmp_sources :=	$(wildcard *.cpp)
 #MKL_INCLUDE=	/home/wang/intel/mkl/8.0.1/include
 #MKL_LINK= 	-L/home/wang/intel/mkl/8.0.1/lib/32 -lmkl_lapack -lmkl_ia32 -lguide -lpthread 
-boost-include-path=	/people/thnfs/homes/wanghan/local/include/boost-1_36
-boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
-boost-lib-option=	-lboost_program_options
+# boost-include-path=	/people/thnfs/homes/wanghan/local/include/boost-1_36
+# boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
+# boost-lib-option=	-lboost_program_options
 include_dirs = 	./include $(MKL_INCLUDE) $(boost-include-path)
 
 sources_dir =		src
 application_dir=	app
+application_target=	$(notdir $(subst .cpp,,$(wildcard $(application_dir)/*.cpp)))
 cppsources := 		$(wildcard $(sources_dir)/*.cpp)
 tmp_cppsources =  	$(notdir $(cppsources))
 tmp_cppdepends = 	$(subst .cpp,.d,$(tmp_cppsources))
@@ -39,14 +40,14 @@ CFLAGS += 	$(addprefix -I ,$(include_dirs))
 CXX:=		g++
 CXXFLAGS += 	$(CFLAGS)
 
-target:		main
+target:		$(application_target)
 
-main:	$(cobjects) $(cppobjects) $(application_dir)/main.o
+%:	$(cobjects) $(cppobjects) $(application_dir)/%.o
 	$(call make-target,$@,$^)
 
 .PHONY: clean
 clean:
-	rm -f $(cobjects) $(cdepends) $(cppobjects) $(cppdepends)  $(application_dir)/*.o $(application_dir)/*.d
+	rm -f $(application_target) $(cobjects) $(cdepends) $(cppobjects) $(cppdepends)  $(application_dir)/*.o $(application_dir)/*.d
 
 .PHONY: makedir
 makedir:
@@ -59,7 +60,7 @@ makedir:
 ifneq "$(MAKECMDGOALS)" "clean"
 -include $(cppdepends)
 -include $(cdepends)
--include $(application_dir)/$(notdir $(subst .cpp,.d,$(wildcard $(application_dir)/*.cpp)))
+-include $(addprefix $(application_dir)/,$(notdir $(subst .cpp,.d,$(wildcard $(application_dir)/*.cpp))))
 endif
 
 # $(call make-depend,source-file,object-file,depend-file)
@@ -74,7 +75,7 @@ define make-depend
 endef
 # $(call make-target,target,object-files-or-lib-files)
 define make-target
-  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) -lfftw3 -L$(boost-lib-path) $(boost-lib-option)
+  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) -lfftw3 
 endef
 
 
