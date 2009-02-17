@@ -5,6 +5,7 @@
 # boost-include-path=	/people/thnfs/homes/wanghan/local/include/boost-1_36
 # boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
 # boost-lib-option=	-lboost_program_options
+
 include_dirs = 	./include $(MKL_INCLUDE) $(boost-include-path)
 
 sources_dir =		src
