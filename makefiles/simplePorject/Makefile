@@ -4,7 +4,7 @@
 #MKL_LINK= 	-L/home/wang/intel/mkl/8.0.1/lib/32 -lmkl_lapack -lmkl_ia32 -lguide -lpthread 
 # boost-include-path=	/people/thnfs/homes/wanghan/local/include/boost-1_36
 # boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
-# boost-lib-option=	-lboost_program_options
+#  boost-lib-option=	-lboost_program_options
 include_dirs = 	./include $(MKL_INCLUDE) $(boost-include-path)
 
 sources_dir =		src
