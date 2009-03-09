@@ -56,7 +56,9 @@ makedir:
 	test -d $(cppobjects_dir) || mkdir -p $(cppobjects_dir)
 	test -d $(cdepends_dir) || mkdir -p $(cdepends_dir)
 	test -d $(cobjects_dir) || mkdir -p $(cobjects_dir)
-
+	test -d $(sources_dir) || mkdir -p $(sources_dir)
+	test -d $(application_dir) || mkdir -p $(application_dir)
+	test -d include || mkdir -p include
 
 ifneq "$(MAKECMDGOALS)" "clean"
 -include $(cppdepends)
