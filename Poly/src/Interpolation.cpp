@@ -1,4 +1,5 @@
 #include "Interpolation.h"
+#include <iterator>
 
 void Interpolation::pieceLinearInterpol (const double & a,  const double & b, 
 					 const double & va, const double & vb,
@@ -143,6 +144,156 @@ void Interpolation::pieceHermiteInterpol (const double & a, const double & b,
   p += b1;
 }
 
+// lbegin--lend, stores lambda
+// ubegin--uend, stores mu
+bool Interpolation::solverForSplinePeriodic (
+    const std::vector<double >::const_iterator & lbegin,
+    const std::vector<double >::const_iterator & lend,
+    const std::vector<double >::iterator & ubegin, 
+    const std::vector<double >::iterator & uend)
+{
+  std::vector<double > la, lb, lc, ld;
+  for (std::vector<double >::const_iterator i = lbegin;
+       i != lend; ++i){
+    la.push_back (1 - *i);
+    lb.push_back (2);
+    lc.push_back (*i);
+    ld.push_back (0);
+  }
+//  ld.front() = 1 - *lbegin;
+  ld[0] = 1 - lc[0];
+  int num = ld.size();
+  ld[num-2] = lc[num-2];
+  ld[num-1] = lb[num-1];
+  
+  std::vector<double >::iterator pu = ubegin;
+  std::vector<double >::iterator pu_1 = pu ++;
+  for (int i = 1; i < num-1; ++i, ++pu, ++pu_1){
+    if (lb[i-1] == 0){
+      return false;
+    }
+    double ratio = - la[i] / lb[i-1];
+    lb[i] += lc[i-1] * ratio;
+    ld[i] += ld[i-1] * ratio;
+    *pu += *pu_1 * ratio;
+  }
+  int i = num-1;
+  if (lb[i-1] == 0){
+    return false;
+  }
+  double ratio = - la[i] / lb[i-1];
+  lb[i] += ld[i-1] * ratio;
+  ld[i] = lb[i];
+  *pu += *pu_1 * ratio;
+  
+  std::cout << lc.back() << std::endl;
+  std::cout << lc.front() << std::endl;
+  ratio = -lb[0] / lc.back();
+  ld[0] += ratio * ld[num-1];
+  *ubegin += ratio * *pu;
+  lb[0] = 0;
+
+//   std::cout << ld.size() << std::endl;
+  ld.insert (ld.begin(), ld.back());
+//   std::cout << ld.size() << std::endl;
+  ld.pop_back();
+//   std::cout << ld.size() << std::endl;
+  double before;
+//   std::cout << "##############################" << std::endl;
+//   std::copy(ubegin, uend, std::ostream_iterator<double >(std::cout, "\n"));
+//   std::cout << "##############################" << std::endl;
+  for (std::vector<double >::iterator tmpu = ubegin; tmpu != uend; ++tmpu){
+    if (tmpu ==  ubegin) {
+      before = *tmpu;
+      *tmpu = *pu;
+    }
+    else {
+      double beforetmp = *tmpu;
+      *tmpu = before;
+      before = beforetmp;
+    }
+  }
+//   std::copy(ubegin, uend, std::ostream_iterator<double >(std::cout, "\n"));
+//   std::cout << "##############################" << std::endl;
+  lc.insert (lc.begin(), *lbegin);
+  lc.pop_back ();
+  lc.back () = ld.back();
+  lb.insert (lb.begin(), 0.);
+  lb.pop_back ();
+  
+  pu = ubegin;
+  pu ++;
+  pu_1 = pu ++;
+  for (int i = 2; i < num-1; ++i, ++pu, ++pu_1){
+    if (lc[i-1] == 0){
+      return false;
+    }
+    double ratio = - lb[i] / lc[i-1];
+    ld[i] += ld[i-1] * ratio;
+    *pu += *pu_1 * ratio;
+  }
+  i = num-1;
+  if (lc[i-1] == 0){
+    return false;
+  }
+  ratio = - lb[i] / lc[i-1];
+  lc[i] += ld[i-1] * ratio;
+  ld[i] = lc[i];
+  *pu += *pu_1 * ratio;
+
+
+  *pu /=lc[num-1];
+  for (int i = num-2; i >= 0; --i, -- pu_1){
+    *pu_1 = (*pu_1 - *pu * ld[i]) / lc[i];
+  }
+
+  return true;
+}
+
+  
+  
+bool Interpolation::splinePeriodic (const std::vector<double > & x,
+				    const std::vector<double > & y,
+				    PiecewisePoly & ps)
+{
+  std::vector<double > lambda (x.size()-1);
+  std::vector<double > mu (x.size()-1);
+  std::vector<double > dx ;
+  
+  std::vector<double >::const_iterator i = x.begin();
+  std::vector<double >::const_iterator j = i;
+  for (++j; j!= x.end(); ++i, ++j){
+    dx.push_back(*j - *i);
+  }
+  lambda[0] = dx.back() / (dx.back() + dx.front());
+  mu[0] = 3 * ((1 - lambda.front())/dx.back()*(y[0] - y[y.size()-2]) +
+	       lambda.front() / dx.front() * (y[1] - y[0]));
+  for (unsigned i = 1; i < lambda.size(); ++i){
+    lambda[i] = dx[i-1] / (dx[i-1] + dx[i]);
+    mu[i] = 3 * ((1 - lambda[i]) / dx[i-1] * (y[i] - y[i-1]) +
+		 lambda[i] / dx[i] * (y[i+1] - y[i]));
+  }
+  
+  bool tag = solverForSplinePeriodic (lambda.begin(), lambda.end(), 
+				      mu.begin(), mu.end());
+  if (!tag) return false;
+  
+  ps.get_x() = x;
+  ps.get_p().clear();
+  for (unsigned i = 0; i < x.size() - 2; ++i){
+    Poly tmpp;
+    pieceHermiteInterpol (x[i], x[i+1], 
+			  y[i], y[i+1], 
+			  mu[i], mu[i+1], tmpp);
+    ps.get_p().push_back (tmpp);
+  }
+  Poly tmpp;
+  pieceHermiteInterpol (x[x.size()-2], x[x.size()-2+1], 
+			y[x.size()-2], y[x.size()-2+1], 
+			mu[x.size()-2], mu[0], tmpp);
+  ps.get_p().push_back (tmpp);
+  return true;
+}
 
 
 bool Interpolation::spline (const std::vector<double > & x,

@@ -31,6 +31,14 @@ namespace Interpolation {
 		 const std::vector<double >::const_iterator xend,
 		 const std::vector<double >::const_iterator ybegin,
 		 PiecewisePoly & ps);
+    bool splinePeriodic (const std::vector<double > & x,
+			 const std::vector<double > & y,
+			 PiecewisePoly & ps);
+    bool solverForSplinePeriodic (
+	const std::vector<double >::const_iterator & lbegin,
+	const std::vector<double >::const_iterator & lend,
+	const std::vector<double >::iterator & ubegin, 
+	const std::vector<double >::iterator & uend);
     void secondDerivativeInterpol (
 	const std::vector<double >::const_iterator & xbegin,
 	const std::vector<double >::const_iterator & xend,
