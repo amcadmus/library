@@ -186,8 +186,8 @@ bool Interpolation::solverForSplinePeriodic (
   ld[i] = lb[i];
   *pu += *pu_1 * ratio;
   
-  std::cout << lc.back() << std::endl;
-  std::cout << lc.front() << std::endl;
+//   std::cout << lc.back() << std::endl;
+//   std::cout << lc.front() << std::endl;
   ratio = -lb[0] / lc.back();
   ld[0] += ratio * ld[num-1];
   *ubegin += ratio * *pu;
