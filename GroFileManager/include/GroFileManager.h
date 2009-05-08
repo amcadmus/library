@@ -22,6 +22,10 @@ namespace GroFileManager{
 		const std::vector<std::vector<double > > & posi,
 		const std::vector<std::vector<double > > & velo,
 		const std::vector<double > & boxsize);
+
+    bool readTop (const std::string & filename,
+		  std::vector<std::string > & molnames,
+		  std::vector<int > & nmols);
     
     template <typename UnitaryFunction1, typename UnitaryFunction2,
 	      typename UnitaryFunction3, typename UnitaryFunction4,

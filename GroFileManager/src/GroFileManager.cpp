@@ -1,6 +1,67 @@
 #include "GroFileManager.h"
 #include <iterator>
 #include <iostream>
+#include <fstream>
+
+bool GroFileManager::readTop (const std::string & filename,
+			      std::vector<std::string > & molnames,
+			      std::vector<int > & nmols)
+{
+  molnames.clear();
+  nmols.clear();
+
+  std::ifstream in(filename.c_str());
+  if (in.bad()){
+    std::cerr << "cannot open file " << filename << std::endl;
+    return false;
+  }
+  char line [1024];
+  std::string target ("[ molecules ]");
+  bool find = false;
+  while (!in.eof()){
+    in.getline (line, 1024, '\n');
+    if (target == std::string (line)) {
+      find = true;
+      break;
+    }
+  }
+  if (!find){
+    std::cerr << "cannot find [ molecules ] in file " << filename 
+	      << ". please check there is no space after \"]\"\n";
+    return false;
+  }
+  
+//   while (!(in.getline (line, 1024, '\n')).eof()){
+// //     if (line[0] == '['){
+// //       break;
+// //     }
+// //     char name[1024];
+// //     int number;
+// //     sscanf (line, "%s%d", name, &number);
+// //     molnames.push_back (std::string(name));
+// //     nmols.push_back (number);
+//   }
+  
+
+  std::string name;
+  int number;
+  while ( !(in >> name >> number).eof()){
+    if (name[0] == '['){
+      break;
+    }
+    if (name.empty()){
+      break;
+    }
+//     std::cout << name << std::endl;
+    molnames.push_back (name);
+    nmols.push_back (number);
+  }
+  
+
+  return true;
+}
+
+
 
 template <typename UnitaryFunction1, typename UnitaryFunction2,
 	  typename UnitaryFunction3, typename UnitaryFunction4,
@@ -144,5 +205,4 @@ struct Zero
       }
 }
     ;
-
 

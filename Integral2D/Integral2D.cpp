@@ -30,8 +30,8 @@ ValueType Integral2D<BinaryFunction,ValueType >::cal_int (const Integral2DInfo::
   if (method == Integral2DInfo::Simpson){
     for (int i = 0; i < nx; i ++){
       for (int j = 0; j < ny; j ++){
-	ValueType x = i * hx;
-	ValueType y = j * hy;
+	ValueType x = i * hx + xlo;
+	ValueType y = j * hy + ylo;
 	box_Simpson.reinit (f, x, x+hx, y, y+hy, tol * nboxesi);
 	ValueType tmp;
 	box_Simpson.cal_int (tmp);
@@ -44,8 +44,8 @@ ValueType Integral2D<BinaryFunction,ValueType >::cal_int (const Integral2DInfo::
   else if (method == Integral2DInfo::Gauss9){
     for (int i = 0; i < nx; i ++){
       for (int j = 0; j < ny; j ++){
-	ValueType x = i * hx;
-	ValueType y = j * hy;
+	ValueType x = i * hx + xlo;
+	ValueType y = j * hy + ylo;
 	box_Gauss9.reinit (f, x, x+hx, y, y+hy, tol * nboxesi);
 	ValueType tmp;
 	box_Gauss9.cal_int (tmp);
@@ -57,8 +57,8 @@ ValueType Integral2D<BinaryFunction,ValueType >::cal_int (const Integral2DInfo::
   else if (method == Integral2DInfo::Gauss16){
     for (int i = 0; i < nx; i ++){
       for (int j = 0; j < ny; j ++){
-	ValueType x = i * hx;
-	ValueType y = j * hy;
+	ValueType x = i * hx + xlo;
+	ValueType y = j * hy + ylo;
 	box_Gauss16.reinit (f, x, x+hx, y, y+hy, tol * nboxesi);
 	ValueType tmp;
 	box_Gauss16.cal_int (tmp);
