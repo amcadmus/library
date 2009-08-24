@@ -29,10 +29,10 @@ class StructureFactor
   std::vector<std::vector<value_type > > vecAStar;
   smoothInterpolationBase * Mn;
   value_type V;
-  std::vector<std::vector<double > > valueb;
+  std::vector<std::vector<std::complex<double > > > valueb;
   void build ();
 private:
-  value_type * Q;	// do not forget to set the image part to 0
+  fftw_complex * Q;	// do not forget to set the image part to 0
   fftw_complex * QF;
   fftw_plan forwardQ;
 private:
@@ -53,6 +53,10 @@ public:
       const std::vector<std::vector<double > > & coord,
       const std::vector<double > & value,
       std::vector<std::complex<double > > & sf);
+  void test(
+      const std::vector<std::vector<double > > & coord,
+      const std::vector<double > & value,
+      std::vector<std::complex<double > > & sf);
 
 } 
     ;
@@ -70,7 +74,8 @@ void StructureFactor<DomainDim >::calQ (
 
   if (DomainDim == 3){
     for (unsigned i = 0; i < K[0] * K[1] * K[2]; i ++){
-      Q[i] = 0;
+      Q[i][1] = 0;
+      Q[i][0] = 0;
     }
     double ii0 = 1./ value_type(K[0]);
     double ii1 = 1./ value_type(K[1]);
@@ -99,7 +104,7 @@ void StructureFactor<DomainDim >::calQ (
 	  index1 = K[2] * ((k1<0 ? k1+K[1] : k1) + index0);
 	  for (int k2 = int(ceil(posi2-n)); k2 < int(ceil(posi2)); ++ k2){
 	    Mn->value (posi2 - k2, tmp2);
-	    Q[(k2<0 ? k2+K[2] : k2) + index1] += value[i] * tmp0 * tmp1 * tmp2;
+	    Q[(k2<0 ? k2+K[2] : k2) + index1][0] += value[i] * tmp0 * tmp1 * tmp2;
 	  }
 	}
       }
@@ -116,14 +121,13 @@ void StructureFactor<DomainDim >::calStructureFactor(
   calQ (coord, value);
   fftw_execute (forwardQ);
   sf.clear();
-  unsigned KK2 = (K[2]/2+1);
   
   if (DomainDim == 3){
     for (unsigned m0 = 0; m0 < K[0]; ++m0){
       for (unsigned m1 = 0; m1 < K[1]; ++m1){
-	for (unsigned m2 = 0; m2 < KK2; ++m2){
-	  std::complex<double > tmp (QF[m2 + KK2 * (m1 + K[1] * m0)][0],
-				     QF[m2 + KK2 * (m1 + K[1] * m0)][1]);
+	for (unsigned m2 = 0; m2 < K[2]; ++m2){
+	  std::complex<double > tmp (QF[m2 + K[2] * (m1 + K[1] * m0)][0],
+				     QF[m2 + K[2] * (m1 + K[1] * m0)][1]);
 	  sf.push_back (valueb[0][m0] * valueb[1][m1] * valueb[2][m2] * tmp);
 	}
       }
@@ -181,11 +185,10 @@ template <int DomainDim >
 void StructureFactor<DomainDim >::build()
 {
   int size = K[0] * K[1] * K[2];
-  int sizeHalf = K[0] * K[1] * (K[2] / 2 + 1);
-  Q	= (value_type *) fftw_malloc (sizeof(value_type) * size);
-  QF	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * sizeHalf);
+  Q	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+  QF	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
 
-  forwardQ	= fftw_plan_dft_r2c_3d (K[0], K[1], K[2], Q  , QF  , FFTW_MEASURE);
+  forwardQ	= fftw_plan_dft_3d (K[0], K[1], K[2], Q  , QF, 1  , FFTW_MEASURE);
 
 }
 
@@ -218,7 +221,7 @@ void StructureFactor<DomainDim >::calB ()
       value_type scale = 1./ (fenmu[0]*fenmu[0] + fenmu[1]*fenmu[1]);
       btmp[0] = scale * (fenzi[0] * fenmu[0] + fenzi[1] * fenmu[1]);
       btmp[1] = scale * (fenzi[1] * fenmu[0] - fenzi[0] * fenmu[1]);
-      valueb[i][m] = btmp[0]*btmp[0] + btmp[1]*btmp[1];
+      valueb[i][m] = std::complex<double >(btmp[0], btmp[1]);
     }
   }  
 }
@@ -295,7 +298,41 @@ StructureFactor<DomainDim >::~StructureFactor()
   fftw_destroy_plan (forwardQ);
 }
 
+template <int DomainDim>
+void StructureFactor<DomainDim>::test(
+    const std::vector<std::vector<double > > & coord,
+    const std::vector<double > & value,
+    std::vector<std::complex<double > > & sf)
+{
+  fftw_complex * in, *ot;
+  fftw_plan forward;
   
+  int size = K[0] * K[1] * K[2];
+  in	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+  ot	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+  
+  forward = fftw_plan_dft_3d (K[0], K[1], K[2], in  , ot, 1  , FFTW_MEASURE);
+
+  for (unsigned i = 0; i < value.size(); ++i){
+    in[i][0] = value[i];
+    in[i][1] = 0;
+  }
+  
+  fftw_execute (forward);
+
+  sf.clear();
+  for (unsigned i = 0; i < value.size(); ++i){
+    std::complex<double > tmp (ot[i][0], ot[i][1]);
+    sf.push_back(tmp);
+  }
+
+  fftw_free (in);
+  fftw_free (ot);
+  fftw_destroy_plan (forward);
+  
+}
+
+
 
 
 #endif
