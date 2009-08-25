@@ -14,9 +14,8 @@
 #include <queue>
 #include <vector>
 #include <cmath>
-#include "Polynominal.h"
+#include "InterpolationBases.h"
 #include <fftw3.h>
-#include "VectorOperation.h"
 #include <complex>
 
 typedef double value_type;
@@ -47,7 +46,7 @@ public:
   void init (const std::vector<std::vector<double > > &vecA_,  
 // vecA is the box base vector
 	     const std::vector<unsigned > K_,
-	     const InterpolationInfo::Order & interpOrder_);
+	     const InterpolationBaseInfo::Order & interpOrder_);
 
   void calStructureFactor(
       const std::vector<std::vector<double > > & coord,
@@ -57,11 +56,19 @@ public:
       const std::vector<std::vector<double > > & coord,
       const std::vector<double > & value,
       std::vector<std::complex<double > > & sf);
-
 } 
     ;
 
-
+namespace StructureFactorUtils {
+inline double dot3 (const std::vector<double > & u, const std::vector<double > & v)
+{
+  return u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+}
+inline double dot2 (const std::vector<double > & u, const std::vector<double > & v)
+{
+  return u[0] * v[0] + u[1] * v[1];
+}
+};
 
 
 template <int DomainDim>
@@ -82,9 +89,9 @@ void StructureFactor<DomainDim >::calQ (
     double ii2 = 1./ value_type(K[2]);
     for (unsigned i = 0; i < coord.size(); ++i){
       std::vector<value_type > u(3);
-      u[0] = K[0] * VectorOperation::dot3 (vecAStar[0], coord[i]);
-      u[1] = K[1] * VectorOperation::dot3 (vecAStar[1], coord[i]);
-      u[2] = K[2] * VectorOperation::dot3 (vecAStar[2], coord[i]);
+      u[0] = K[0] * StructureFactorUtils::dot3 (vecAStar[0], coord[i]);
+      u[1] = K[1] * StructureFactorUtils::dot3 (vecAStar[1], coord[i]);
+      u[2] = K[2] * StructureFactorUtils::dot3 (vecAStar[2], coord[i]);
       int A0 = -int(floor ((u[0]) * ii0)) ;
       int A1 = -int(floor ((u[1]) * ii1)) ;
       int A2 = -int(floor ((u[2]) * ii2)) ;
@@ -106,6 +113,35 @@ void StructureFactor<DomainDim >::calQ (
 	    Mn->value (posi2 - k2, tmp2);
 	    Q[(k2<0 ? k2+K[2] : k2) + index1][0] += value[i] * tmp0 * tmp1 * tmp2;
 	  }
+	}
+      }
+    }
+  }
+  else if (DomainDim == 2) {
+    for (unsigned i = 0; i < K[0] * K[1]; i ++){
+      Q[i][1] = 0;
+      Q[i][0] = 0;
+    }
+    double ii0 = 1./ value_type(K[0]);
+    double ii1 = 1./ value_type(K[1]);
+    for (unsigned i = 0; i < coord.size(); ++i){
+      std::vector<value_type > u(2);
+      u[0] = K[0] * StructureFactorUtils::dot2 (vecAStar[0], coord[i]);
+      u[1] = K[1] * StructureFactorUtils::dot2 (vecAStar[1], coord[i]);
+      int A0 = -int(floor ((u[0]) * ii0)) ;
+      int A1 = -int(floor ((u[1]) * ii1)) ;
+      value_type posi0 = u[0] + A0 * K[0];
+      value_type posi1 = u[1] + A1 * K[1];
+      value_type tmp0 = 0;
+      value_type tmp1 = 0;
+
+      unsigned index0;
+      for (int k0 = int(ceil(posi0-n)); k0 < int(ceil(posi0)); ++ k0){
+	Mn->value (posi0 - k0, tmp0);
+	index0 = K[1] * (k0<0 ? k0+K[0] : k0);
+	for (int k1 = int(ceil(posi1-n)); k1 < int(ceil(posi1)); ++ k1){
+	  Mn->value (posi1 - k1, tmp1);
+	  Q[((k1<0 ? k1+K[1] : k1) + index0)][0] += value[i] * tmp0 * tmp1;
 	}
       }
     }
@@ -133,13 +169,22 @@ void StructureFactor<DomainDim >::calStructureFactor(
       }
     }
   }
+  else if (DomainDim == 2){
+    for (unsigned m0 = 0; m0 < K[0]; ++m0){
+      for (unsigned m1 = 0; m1 < K[1]; ++m1){
+	std::complex<double > tmp (QF[ (m1 + K[1] * m0)][0],
+				   QF[ (m1 + K[1] * m0)][1]);
+	sf.push_back (valueb[0][m0] * valueb[1][m1]  * tmp);
+      }
+    }
+  }
 }
 
 template <int DomainDim>
 void StructureFactor<DomainDim>::init (
     const std::vector<std::vector<value_type > > &vecA_,
     const std::vector<unsigned > K_,
-    const InterpolationInfo::Order & interpOrder_)
+    const InterpolationBaseInfo::Order & interpOrder_)
 {
   switch (interpOrder_){
   case 2 :
@@ -184,12 +229,21 @@ void StructureFactor<DomainDim>::init (
 template <int DomainDim >
 void StructureFactor<DomainDim >::build()
 {
-  int size = K[0] * K[1] * K[2];
-  Q	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
-  QF	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
 
-  forwardQ	= fftw_plan_dft_3d (K[0], K[1], K[2], Q  , QF, 1  , FFTW_MEASURE);
+  if (DomainDim == 3){
+    int size = K[0] * K[1] * K[2];
+    Q	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+    QF	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
 
+    forwardQ	= fftw_plan_dft_3d (K[0], K[1], K[2], Q  , QF, 1  , FFTW_MEASURE);
+  }
+  else if (DomainDim == 2){
+    int size = K[0] * K[1];
+    Q	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+    QF	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+
+    forwardQ	= fftw_plan_dft_2d (K[0], K[1], Q  , QF, 1  , FFTW_MEASURE);
+  }  
 }
 
 
@@ -286,7 +340,29 @@ void StructureFactor<DomainDim>::calAStar ()
     vecAStar[0][2] =( vecA[0][1]*vecA[1][2] - vecA[1][1]*vecA[0][2]) / V;
     vecAStar[1][2] =(-vecA[0][0]*vecA[1][2] + vecA[1][0]*vecA[0][2]) / V;
   }
-  
+  else if (DomainDim == 2){
+    vecAStar.resize (2);
+    vecAStar[0].resize (2);
+    vecAStar[1].resize (2);
+    std::vector<double > a0p (2), a1p(2);
+    a0p[0] =  vecA[0][1];
+    a0p[1] = -vecA[0][0];
+    a1p[0] =  vecA[1][1];
+    a1p[1] = -vecA[1][0];
+    double scale1 = StructureFactorUtils::dot2 (a0p, vecA[1]);
+    double scale0 = StructureFactorUtils::dot2 (a1p, vecA[0]);
+    vecAStar[0][0] = a1p[0] / scale0;
+    vecAStar[0][1] = a1p[1] / scale0;
+    vecAStar[1][0] = a0p[0] / scale1;
+    vecAStar[1][1] = a0p[1] / scale1;
+    std::cout << StructureFactorUtils::dot2 (vecAStar[0], vecA[0]) << std::endl;
+    std::cout << StructureFactorUtils::dot2 (vecAStar[0], vecA[1]) << std::endl;
+    std::cout << StructureFactorUtils::dot2 (vecAStar[1], vecA[0]) << std::endl;
+    std::cout << StructureFactorUtils::dot2 (vecAStar[1], vecA[1]) << std::endl;
+    std::cout << vecAStar[0][0] << " " << vecAStar[0][1] << std::endl;
+    std::cout << vecAStar[1][0] << " " << vecAStar[1][1] << std::endl;
+    
+  }
 }
 
 template <int DomainDim > 
@@ -298,39 +374,39 @@ StructureFactor<DomainDim >::~StructureFactor()
   fftw_destroy_plan (forwardQ);
 }
 
-template <int DomainDim>
-void StructureFactor<DomainDim>::test(
-    const std::vector<std::vector<double > > & coord,
-    const std::vector<double > & value,
-    std::vector<std::complex<double > > & sf)
-{
-  fftw_complex * in, *ot;
-  fftw_plan forward;
+// template <int DomainDim>
+// void StructureFactor<DomainDim>::test(
+//     const std::vector<std::vector<double > > & coord,
+//     const std::vector<double > & value,
+//     std::vector<std::complex<double > > & sf)
+// {
+//   fftw_complex * in, *ot;
+//   fftw_plan forward;
   
-  int size = K[0] * K[1] * K[2];
-  in	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
-  ot	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+//   int size = K[0] * K[1] * K[2];
+//   in	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+//   ot	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
   
-  forward = fftw_plan_dft_3d (K[0], K[1], K[2], in  , ot, 1  , FFTW_MEASURE);
+//   forward = fftw_plan_dft_3d (K[0], K[1], K[2], in  , ot, 1  , FFTW_MEASURE);
 
-  for (unsigned i = 0; i < value.size(); ++i){
-    in[i][0] = value[i];
-    in[i][1] = 0;
-  }
+//   for (unsigned i = 0; i < value.size(); ++i){
+//     in[i][0] = value[i];
+//     in[i][1] = 0;
+//   }
   
-  fftw_execute (forward);
+//   fftw_execute (forward);
 
-  sf.clear();
-  for (unsigned i = 0; i < value.size(); ++i){
-    std::complex<double > tmp (ot[i][0], ot[i][1]);
-    sf.push_back(tmp);
-  }
+//   sf.clear();
+//   for (unsigned i = 0; i < value.size(); ++i){
+//     std::complex<double > tmp (ot[i][0], ot[i][1]);
+//     sf.push_back(tmp);
+//   }
 
-  fftw_free (in);
-  fftw_free (ot);
-  fftw_destroy_plan (forward);
+//   fftw_free (in);
+//   fftw_free (ot);
+//   fftw_destroy_plan (forward);
   
-}
+// }
 
 
 

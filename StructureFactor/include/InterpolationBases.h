@@ -1,5 +1,5 @@
-#ifndef __wanghan_Polynominal_h__
-#define __wanghan_Polynominal_h__
+#ifndef __wanghan_InterpolationBases_h__
+#define __wanghan_InterpolationBases_h__
 
 #include <vector>
 #include <iostream>
@@ -12,14 +12,12 @@ typedef double value_type;
 #define _1o12  (.08333333333333333333)
 
 
-struct InterpolationInfo 
+struct InterpolationBaseInfo 
 {
 public:
   typedef int Method;
-  static Method ES;
   static Method Lagrange;
   static Method BSpline;
-  static Method FBSpline;
   typedef unsigned Order;
   static Order Second;
   static Order Fourth;
