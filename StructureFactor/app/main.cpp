@@ -31,9 +31,11 @@ void generateSystem (
     tmp[1] = ToolBox::genrand_real2() * box[1];
     tmp[2] = ToolBox::genrand_real2() * box[2];
     coord.push_back (tmp);
-    value.push_back (ToolBox::genrand_real2());
+    // value.push_back (ToolBox::genrand_real2());
     // value.push_back (cos(tmp[0] / box[0] * 2 * M_PI));
     // value.push_back(1);
+    value.push_back (00 + cos(tmp[0] / box[0] * 2 * M_PI));
+    value.back() /= double(N);
   }
 }
 
@@ -58,7 +60,7 @@ void generateSystem (
 	tmp[2] = m2 / double(K[2]) * box[2];
 	coord.push_back(tmp);
 	// value.push_back(ToolBox::genrand_real2());
-	value.push_back (cos(tmp[0] / box[0] * 2 * M_PI));
+	value.push_back (00 + cos(tmp[0] / box[0] * 2 * M_PI));
       }
     }
   }
@@ -108,24 +110,31 @@ int main (int argc, char * argv[])
   std::vector<std::vector<double > > coord;
   std::vector<double > value;
   
-  generateSystem (vecA, 100, coord, value);
+  generateSystem (vecA, 4000, coord, value);
   // std::cout << value.size() << std::endl;
   std::complex<double > result0 ;
-  std::vector<int > testindx (3, 0);
-  // testindx[0] = 10;
-  testindx[1] = 7;
-  testindx[2] = 7;
-  testindx[0] = 12;
-  
+  std::vector<int > testindx (3, 0);  
   test_sf (vecA, testindx, coord, value, result0);
-  
 
-  sf.init (vecA, K, 10);
-  std::vector<std::complex<double > > result1;
-  sf.calStructureFactor (coord, value, result1);
+
+
   
   std::cout << result0 << std::endl;
-  std::cout << result1[testindx[2] + (K[2]) * (testindx[1] + K[1] * testindx[0])] << std::endl;
+
+  testindx[1] = 0;
+  testindx[2] = 0;
+  testindx[0] = 1;
+  test_sf (vecA, testindx, coord, value, result0);
+
+  std::cout << result0 << std::endl;
+
+
+
+  sf.init (vecA, K, 6);
+  // std::vector<std::complex<double > > result1;
+  // sf.calStructureFactor (coord, value, result1);
+
+  // std::cout << result1[testindx[2] + (K[2]) * (testindx[1] + K[1] * testindx[0])] << std::endl;
 
 
   // std::cout << value.size() << std::endl;

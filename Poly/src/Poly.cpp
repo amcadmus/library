@@ -83,6 +83,23 @@ void PiecewisePoly::value (const std::vector<double > & r,
   value (0, x.size()-1, r, 0, r.size()-1, y);
 }
 
+
+
+Poly & Poly::valueLinearPoly (const double & a_, const double & b_,
+			      Poly & p)
+{
+  std::vector<double > tmp(2, a_);
+  tmp[0] = b_;
+  Poly axb (tmp);
+  p.one();
+  p *= a.back();
+  for (int i = order-1; i >= 0; i--){
+    (p *= axb) += a[i];
+  }
+  return p;
+}
+  
+
 double Poly::value (const double & x) const
 {
   double value = a[a.size()-1];
@@ -93,9 +110,8 @@ double Poly::value (const double & x) const
 }
 
 Poly::Poly ()
-    : a (1, 0.)
+    : a (1, 0.) , order(0.)
 {
-  order = 0;
 }
 
 Poly::Poly (const std::vector<double > & out)
@@ -133,6 +149,13 @@ Poly & Poly::operator += (const Poly & p)
   }
   return * this;
 }
+
+Poly & Poly::operator += (const double & b)
+{
+  a[0] += b;
+  return *this;
+}
+
 
 Poly & Poly::derivative ()
 {

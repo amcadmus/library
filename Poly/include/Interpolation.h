@@ -24,6 +24,12 @@ namespace Interpolation {
 					const double & va, const double & vb,
 					const double & dda,const double & ddb,
 					Poly & p);
+    void piece6OrderInterpol (const double & a,   const double & b,
+			      const double & va,  const double & vb,
+			      const double & da,  const double & db,
+			      const double & dda, const double & ddb,
+			      Poly & p);
+
     bool spline (const std::vector<double > & x,
 		 const std::vector<double > & y,
 		 PiecewisePoly & ps);

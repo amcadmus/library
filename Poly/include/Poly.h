@@ -18,6 +18,7 @@ public:
 public:
   Poly & operator = (const Poly & poly);
   Poly & operator += (const Poly & poly);
+  Poly & operator += (const double & b);
   Poly & operator *= (const Poly & poly);
   Poly & operator *= (const double & scale);
   Poly & derivative ();
@@ -32,6 +33,10 @@ public:
   void printCode (const std::string & x);
 public :
   double value ( const double & x ) const;
+public:
+  // p = f(ax + b)
+  Poly & valueLinearPoly (const double & a, const double & b,
+			  Poly & p);
 }
     ;
 

@@ -1,6 +1,84 @@
 #include "Interpolation.h"
 #include <iterator>
 
+
+void Interpolation::piece6OrderInterpol (const double & a,   const double & b,
+					 const double & va,  const double & vb,
+					 const double & da,  const double & db,
+					 const double & dda, const double & ddb,
+					 Poly & p)
+{
+  std::vector<Poly > standardPolys(6);
+  for (unsigned i = 0; i < 6; ++i){
+    standardPolys[i].getOrder() = 5;
+    standardPolys[i].getCoeffs().resize(6);
+  }
+  standardPolys[0].getCoeffs()[0] = 1;
+  standardPolys[0].getCoeffs()[1] = 0;
+  standardPolys[0].getCoeffs()[2] = 0;
+  standardPolys[0].getCoeffs()[3] = -10;
+  standardPolys[0].getCoeffs()[4] = 15;
+  standardPolys[0].getCoeffs()[5] = -6;
+
+  standardPolys[1].getCoeffs()[0] = 0;
+  standardPolys[1].getCoeffs()[1] = 0;
+  standardPolys[1].getCoeffs()[2] = 0;
+  standardPolys[1].getCoeffs()[3] = 10;
+  standardPolys[1].getCoeffs()[4] = -15;
+  standardPolys[1].getCoeffs()[5] = 6;
+  
+  standardPolys[2].getCoeffs()[0] = 0;
+  standardPolys[2].getCoeffs()[1] = 1;
+  standardPolys[2].getCoeffs()[2] = 0;
+  standardPolys[2].getCoeffs()[3] = -6;
+  standardPolys[2].getCoeffs()[4] = 8;
+  standardPolys[2].getCoeffs()[5] = -3;
+
+  standardPolys[3].getCoeffs()[0] = 0;
+  standardPolys[3].getCoeffs()[1] = 0;
+  standardPolys[3].getCoeffs()[2] = 0;
+  standardPolys[3].getCoeffs()[3] = -4;
+  standardPolys[3].getCoeffs()[4] = 7;
+  standardPolys[3].getCoeffs()[5] = -3;
+  
+  standardPolys[4].getCoeffs()[0] = 0;
+  standardPolys[4].getCoeffs()[1] = 0;
+  standardPolys[4].getCoeffs()[2] = 0.5;
+  standardPolys[4].getCoeffs()[3] = -1.5;
+  standardPolys[4].getCoeffs()[4] = 1.5;
+  standardPolys[4].getCoeffs()[5] = -0.5;
+
+  standardPolys[5].getCoeffs()[0] = 0;
+  standardPolys[5].getCoeffs()[1] = 0;
+  standardPolys[5].getCoeffs()[2] = 0;
+  standardPolys[5].getCoeffs()[3] = 0.5;
+  standardPolys[5].getCoeffs()[4] = -1;
+  standardPolys[5].getCoeffs()[5] = 0.5;
+
+  std::vector<Poly > scaledPolys (6);
+  double tmpa (1./(b - a));
+  double tmpb (-a / (b - a));
+  for (unsigned i = 0; i < 6; ++i){
+    standardPolys[i].valueLinearPoly (tmpa, tmpb, scaledPolys[i]);
+  }
+  scaledPolys[2] *= 1./tmpa;
+  scaledPolys[3] *= 1./tmpa;
+  scaledPolys[4] *= 1./tmpa/tmpa;
+  scaledPolys[5] *= 1./tmpa/tmpa;
+
+  p.zero();
+  p += (scaledPolys[0] *= va);
+  p += (scaledPolys[1] *= vb);
+  p += (scaledPolys[2] *= da);
+  p += (scaledPolys[3] *= db);
+  p += (scaledPolys[4] *= dda);
+  p += (scaledPolys[5] *= ddb);
+
+  return ;
+}
+
+
+
 void Interpolation::pieceLinearInterpol (const double & a,  const double & b, 
 					 const double & va, const double & vb,
 					 Poly & p)

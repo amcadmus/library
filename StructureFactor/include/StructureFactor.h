@@ -374,39 +374,39 @@ StructureFactor<DomainDim >::~StructureFactor()
   fftw_destroy_plan (forwardQ);
 }
 
-// template <int DomainDim>
-// void StructureFactor<DomainDim>::test(
-//     const std::vector<std::vector<double > > & coord,
-//     const std::vector<double > & value,
-//     std::vector<std::complex<double > > & sf)
-// {
-//   fftw_complex * in, *ot;
-//   fftw_plan forward;
+template <int DomainDim>
+void StructureFactor<DomainDim>::test(
+    const std::vector<std::vector<double > > & coord,
+    const std::vector<double > & value,
+    std::vector<std::complex<double > > & sf)
+{
+  fftw_complex * in, *ot;
+  fftw_plan forward;
   
-//   int size = K[0] * K[1] * K[2];
-//   in	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
-//   ot	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+  int size = K[0] * K[1] * K[2];
+  in	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
+  ot	= (fftw_complex *) fftw_malloc (sizeof(fftw_complex) * size);
   
-//   forward = fftw_plan_dft_3d (K[0], K[1], K[2], in  , ot, 1  , FFTW_MEASURE);
+  forward = fftw_plan_dft_3d (K[0], K[1], K[2], in  , ot, 1  , FFTW_MEASURE);
 
-//   for (unsigned i = 0; i < value.size(); ++i){
-//     in[i][0] = value[i];
-//     in[i][1] = 0;
-//   }
+  for (unsigned i = 0; i < value.size(); ++i){
+    in[i][0] = value[i];
+    in[i][1] = 0;
+  }
   
-//   fftw_execute (forward);
+  fftw_execute (forward);
 
-//   sf.clear();
-//   for (unsigned i = 0; i < value.size(); ++i){
-//     std::complex<double > tmp (ot[i][0], ot[i][1]);
-//     sf.push_back(tmp);
-//   }
+  sf.clear();
+  for (unsigned i = 0; i < value.size(); ++i){
+    std::complex<double > tmp (ot[i][0], ot[i][1]);
+    sf.push_back(tmp);
+  }
 
-//   fftw_free (in);
-//   fftw_free (ot);
-//   fftw_destroy_plan (forward);
+  fftw_free (in);
+  fftw_free (ot);
+  fftw_destroy_plan (forward);
   
-// }
+}
 
 
 
