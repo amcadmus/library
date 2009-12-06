@@ -1,16 +1,21 @@
-#tmp_sources =	mk_mem.cpp main.cpp norm_var.cpp rhs.cpp pub_func.cpp solution.cpp
-#tmp_sources :=	$(wildcard *.cpp)
+############################################################
+## Makefile for cuda by Han Wang
+############################################################
+
 #MKL_INCLUDE=	/home/wang/intel/mkl/8.0.1/include
 #MKL_LINK= 	-L/home/wang/intel/mkl/8.0.1/lib/32 -lmkl_lapack -lmkl_ia32 -lguide -lpthread 
 # boost-include-path=	/people/thnfs/homes/wanghan/local/include/boost-1_36
 # boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
 # boost-lib-option=	-lboost_program_options
+link-options=		/home/wanghan/local/lib/libxdrfile.a 
+link-path=		-L /home/wanghan/local/lib
 
-include_dirs = 	./include $(MKL_INCLUDE) $(boost-include-path)
+include_dirs = 	./include ~/local/include  ~/local/include/xdrfile/
+.SUFFIXES: .cu .c .cpp .o
 
 sources_dir =		src
 application_dir=	app
-application_target=	$(notdir $(subst .cpp,,$(wildcard $(application_dir)/*.cpp)))
+application_target=	$(notdir $(subst .cu,,$(wildcard $(application_dir)/*.cu)))
 cppsources := 		$(wildcard $(sources_dir)/*.cpp)
 tmp_cppsources =  	$(notdir $(cppsources))
 tmp_cppdepends = 	$(subst .cpp,.d,$(tmp_cppsources))
@@ -44,18 +49,27 @@ cobjects = 	$(addprefix $(cobjects_dir)/,$(tmp_cobjects))
 cudepends = 	$(addprefix $(cudepends_dir)/,$(tmp_cudepends))
 cuobjects = 	$(addprefix $(cuobjects_dir)/,$(tmp_cuobjects))
 
+appobjects=	$(subst .cu,.o,$(wildcard $(application_dir)/*.cu))
 
-C:=		nvcc
+
+C:=		gcc
 CFLAGS +=	-g -O0 
 CFLAGS += 	$(addprefix -I ,$(include_dirs))
 
-CXX:=		nvcc
+CXX:=		g++
 CXXFLAGS += 	$(CFLAGS)
+
+CU:=		nvcc
+CUFLAGS +=	$(CFLAGS)  -arch sm_12
 
 target:		$(application_target)
 
-%:	$(cobjects) $(cppobjects) $(cuobjects) $(application_dir)/%.o
-	$(call make-target,$@,$^)
+%:	$(application_dir)/%.o $(cobjects) $(cppobjects) $(cuobjects) 
+	$(call make-target,$@,$^) 
+
+$(cuobjects):
+$(cppobjects):
+$(appobjects):
 
 .PHONY: clean
 clean:
@@ -73,56 +87,52 @@ makedir:
 	test -d $(application_dir) || mkdir -p $(application_dir)
 	test -d include || mkdir -p include
 
+
 ifneq "$(MAKECMDGOALS)" "clean"
 -include $(cppdepends)
 -include $(cdepends)
 -include $(cudepends)
--include $(addprefix $(application_dir)/,$(notdir $(subst .cpp,.d,$(wildcard $(application_dir)/*.cpp))))
+-include $(addprefix $(application_dir)/,$(notdir $(subst .cu,.d,$(wildcard $(application_dir)/*.cu))))
 endif
 
 # $(call make-depend,source-file,object-dir,depend-file)
-define make-depend
-  $(CXX) 	-o $3		\
+define make-depend-cu
+  $(CU) 	-o $3		\
 		-odir $2	\
-		$(CXXFLAGS)	\
-		-M $1
+		$(CUFLAGS)	\
+		-M $1;
+  # sed -e '/home/s/.*/\/usr\/include\/stdio\.h\\/g' $3 > $3.tmp;
+  sed -e '/home/d' $3 > $3.tmp;
+  mv -f  $3.tmp $3
 endef
+
+# $(call make-depend,source-file,object-file,depend-file)
+define make-depend
+  $(CXX)        -MM             \
+                -MF $3          \
+                -MP             \
+                -MT $2          \
+                $(CXXFLAGS)     \
+                $(TARGET_ARCH)  \
+                $1
+endef
+
 # $(call make-target,target,object-files-or-lib-files)
 define make-target
-  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) -lfftw3 
+  $(CU) $(CUFLAGS) $(link-path) -o $1 $2 -lm $(link-options) 
 endef
 
 
 $(cppobjects_dir)/%.o:	$(sources_dir)/%.cpp
-	$(call make-depend,$<,$(dir $@),$(cppdepends_dir)/$(notdir $(subst .o,.d,$@)))
-	$(COMPILE.cpp) $(OUTPUT_OPTION) $<	
+	$(call make-depend,$<,$(cppobjects_dir),$(cppdepends_dir)/$(notdir $(subst .o,.d,$@)))
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 $(cobjects_dir)/%.o:	$(sources_dir)/%.c
-	$(call make-depend,$<,$(dir $@),$(cdepends_dir)/$(notdir $(subst .o,.d,$@)))
-	$(COMPILE.c) $(OUTPUT_OPTION) $<		
+	$(call make-depend,$<,$(cobjects_dir),$(cdepends_dir)/$(notdir $(subst .o,.d,$@)))
+	$(C) $(CFLAGS) -o $@ -c $<			
 $(cuobjects_dir)/%.o:	$(sources_dir)/%.cu
-	$(call make-depend,$<,$(dir $@),$(cudepends_dir)/$(notdir $(subst .o,.d,$@)))
-	$(C) $(CFLAGS) -o $@ -c $<	
-$(application_dir)/%.o:	$(application_dir)/%.cpp
-	$(call make-depend,$<,$(dir $@),$(application_dir)/$(notdir $(subst .o,.d,$@)))
-	$(COMPILE.cpp) $(OUTPUT_OPTION) $<	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	$(call make-depend-cu,$<,$(cuobjects_dir),$(cudepends_dir)/$(notdir $(subst .o,.d,$@)))
+	$(CU) $(CUFLAGS) -o $@ -c $<	
+$(application_dir)/%.o:	$(application_dir)/%.cu
+	$(call make-depend-cu,$<,$(application_dir),$(application_dir)/$(notdir $(subst .o,.d,$@)))
+	$(CU) $(CUFLAGS) -o $@ -c $<		
 
