@@ -3,6 +3,12 @@
 #include <iostream>
 #include <fstream>
 
+class WrongFileFormat
+{
+};
+
+
+
 bool GroFileManager::readTop (const std::string & filename,
 			      std::vector<std::string > & molnames,
 			      std::vector<int > & nmols)
@@ -120,7 +126,11 @@ void GroFileManager::read (const std::string & name ,
     std::cerr << "cannot open file " << name << std::endl;
     return;
   }
-
+  while (fgetc(fp) != '\n');
+  int npart;
+  fscanf (fp, "%d\n", &npart);
+  fclose (fp);
+  
   resdindex.clear();
   resdname.clear();
   atomname.clear();
@@ -128,36 +138,82 @@ void GroFileManager::read (const std::string & name ,
   posi.clear();
   velo.clear();
   boxsize.resize(3);
-  
+
+  fp = fopen (name.c_str(), "r");  
   while (fgetc(fp) != '\n');
-  int npart;
-  int n1, n2;
-  char s1[10], s2[10];
-  double a, b, c;
-  double d, e, f;
-  fscanf (fp, "%d", &npart);
+  while (fgetc(fp) != '\n');
+  char line[1024];
   for (int i = 0; i < npart; ++ i){
-    fscanf (fp, "%5d%5s%5s%5d%lf%lf%lf%lf%lf%lf",
-	    &n1, s1, s2, &n2, &a, &b, &c, &d, &e, &f);
-    resdindex.push_back (n1);
-    resdname.push_back (std::string(s1));
-    atomname.push_back (std::string(s2));
-    atomindex.push_back (n2);
-    std::vector<double > tmp;
-    tmp.push_back(a);
-    tmp.push_back(b);
-    tmp.push_back(c);
-    posi.push_back(tmp);
-    tmp.clear();
-    tmp.push_back(d);
-    tmp.push_back(e);
-    tmp.push_back(f);
-    velo.push_back(tmp);    
+    fgets (line, 1024, fp);
+    char tmp[1024];
+    int tmpd;
+    char tmps[1024];
+    for (unsigned j = 0; j < 5; ++j){
+      tmp[j] = line[j];
+    }
+    tmp[5] = '\0';
+    if (sscanf (tmp, "%d", &tmpd) != 1){
+      throw WrongFileFormat();
+    }
+    resdindex.push_back(tmpd);
+
+    for (unsigned j = 0; j < 5; ++j){
+      tmp[j] = line[j+5];
+    }
+    tmp[5] = '\0';
+    if (sscanf (tmp, "%s", tmps) != 1){
+      throw WrongFileFormat();
+    }
+    resdname.push_back (tmps);
+
+    for (unsigned j = 0; j < 5; ++j){
+      tmp[j] = line[j+10];
+    }
+    tmp[5] = '\0';
+    if (sscanf (tmp, "%s", tmps) != 1){
+      throw WrongFileFormat();
+    }
+    atomname.push_back (tmps);
+
+    for (unsigned j = 0; j < 5; ++j){
+      tmp[j] = line[j+15];
+    }
+    tmp[5] = '\0';
+    if (sscanf (tmp, "%d", &tmpd) != 1){
+      throw WrongFileFormat();
+    }
+    atomindex.push_back(tmpd);
+
+    double a, b, c;
+    double d, e, f;
+    std::vector<double > tmpp(3);
+    std::vector<double > tmpv(3);
+
+    int tag = sscanf (&line[20], "%lf%lf%lf%lf%lf%lf", &a, &b, &c, &d, &e, &f);
+    tmpp[0] = a;
+    tmpp[1] = b;
+    tmpp[2] = c;
+    switch (tag){
+    case 6:
+	tmpv[0] = d;
+	tmpv[1] = e;
+	tmpv[2] = f;
+	break;
+    case 3:
+	tmpv[0] = 0.f;
+	tmpv[1] = 0.f;
+	tmpv[2] = 0.f;
+	break;
+    default:
+	throw WrongFileFormat();
+    }
+
+    posi.push_back(tmpp);
+    velo.push_back(tmpv);
   }
-  fscanf (fp, "%8lf%8lf%8lf", &boxsize[0], &boxsize[1], &boxsize[2]);
+  fscanf (fp, "%lf%lf%lf", &boxsize[0], &boxsize[1], &boxsize[2]);
   
   fclose (fp);
-
 }
 
 void GroFileManager::write (const std::string & name ,
@@ -174,7 +230,7 @@ void GroFileManager::write (const std::string & name ,
     std::cerr << "cannot open file " << name << std::endl;
     return;
   }
-  std::copy (atomname.begin(), atomname.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
+  // std::copy (atomname.begin(), atomname.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
   
   fprintf (fp, "\n%d\n", resdindex.size());
   for (int i = 0; i < int(resdindex.size()); ++i){
