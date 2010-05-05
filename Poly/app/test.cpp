@@ -5,6 +5,9 @@
 #include <iostream>
 #include <iterator>
 #include <vector> 
+#include <iostream>
+#include <stdio.h>
+#include <cmath>
 
 int main(int argc, char * argv[])
 {
@@ -22,45 +25,74 @@ int main(int argc, char * argv[])
 //   Interpolation::solverForSplinePeriodic (l.begin(), l.end(), mu.begin(), mu.end());
 //   std::copy (mu.begin(), mu.end(), std::ostream_iterator<double > (std::cout, "\n"));
 
-  FILE * fp = fopen ("averageHead.out", "r");
-  double tmp1, tmp2;
-  std::vector<double > x, y;
-  while (fscanf(fp, "%lf%lf", &tmp1, &tmp2) != EOF){
-    x.push_back (tmp1);
-    y.push_back (tmp2);
+  // // FILE * fp = fopen ("averageHead.out", "r");
+  // // double tmp1, tmp2;
+  // // std::vector<double > x, y;
+  // // while (fscanf(fp, "%lf%lf", &tmp1, &tmp2) != EOF){
+  // //   x.push_back (tmp1);
+  // //   y.push_back (tmp2);
+  // // }
+  // // x.push_back (x[2] - x[1] + x.back());
+  // // y.push_back (y.front());
+  // // PiecewisePoly ps;
+  // // Interpolation::splinePeriodic (x, y, ps);
+  
+  // // for (unsigned i = 0; i < x.size()-1; ++i){
+  // //   {
+  // //     Poly tmp = ps.get_p()[i];
+  // //     double v = tmp.value (x[i]);
+  // //     tmp.derivative();
+  // //     double dv = tmp.value (x[i]);
+  // //     tmp.derivative();
+  // //     double ddv = tmp.value (x[i]);
+  // //     std::cout << v << '\t'
+  // // 		<< dv << '\t'
+  // // 		<< ddv << '\t' << std::endl;
+  // //   }{
+  // //     Poly tmp = ps.get_p()[i];
+  // //     double v = tmp.value (x[i+1]);
+  // //     tmp.derivative();
+  // //     double dv = tmp.value (x[i+1]);
+  // //     tmp.derivative();
+  // //     double ddv = tmp.value (x[i+1]);
+  // //     std::cout << v << '\t'
+  // // 		<< dv << '\t'
+  // // 		<< ddv << '\t' << std::endl;
+  // //   }
+  // // }
+  
+
+  std::vector<double > r;
+  std::vector<double > ref;
+  double rlo(0), rup(M_PI);
+  unsigned Nr(100);
+  double hr = (rup - rlo) / double(Nr);
+  
+  for (unsigned i = 0; i < Nr; ++i){
+    r.push_back (rlo + i * hr);
+    ref.push_back (sin(r.back()));
   }
-  x.push_back (x[2] - x[1] + x.back());
-  y.push_back (y.front());
+
   PiecewisePoly ps;
-  Interpolation::splinePeriodic (x, y, ps);
+  Interpolation::piecewiseLinear (r, ref, ps);
+
+  std::vector<double > x, y;
+  double xlo(-4), xup(10);
+  unsigned Nx (1000);
+  double hx = (xup - xlo) / double(Nx);
+  for (unsigned i = 0; i < Nx; ++i){
+    x.push_back (xlo + i * hx);
+  }
+  ps.value_periodic (x, y);
   
-  for (unsigned i = 0; i < x.size()-1; ++i){
-    {
-      Poly tmp = ps.get_p()[i];
-      double v = tmp.value (x[i]);
-      tmp.derivative();
-      double dv = tmp.value (x[i]);
-      tmp.derivative();
-      double ddv = tmp.value (x[i]);
-      std::cout << v << '\t'
-		<< dv << '\t'
-		<< ddv << '\t' << std::endl;
-    }{
-      Poly tmp = ps.get_p()[i];
-      double v = tmp.value (x[i+1]);
-      tmp.derivative();
-      double dv = tmp.value (x[i+1]);
-      tmp.derivative();
-      double ddv = tmp.value (x[i+1]);
-      std::cout << v << '\t'
-		<< dv << '\t'
-		<< ddv << '\t' << std::endl;
-    }
+  for (unsigned i = 0; i < Nx; ++i){
+    std::cout << x[i] << " " << y[i] << std::endl;
+  }
+  for (unsigned i = 0; i < Nr; ++i){
+    std::cerr << r[i] << " " << ref[i] << std::endl;
   }
   
-
-
-
+  return 0;
 }
 
 

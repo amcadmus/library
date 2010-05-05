@@ -32,6 +32,35 @@ double PiecewisePoly::value (const double & xx) const
   return p[begin].value(xx);
 }
 
+double PiecewisePoly::value_periodic (const double & xx_) const
+{
+  double xx(xx_);
+  double T = x.back() - x.front();
+  if (xx < x.front()){
+    while ((xx += T) < x.front()) ;
+  }
+  else if (xx >= x.back()){
+    while ((xx -= T) >= x.back());
+  }
+  unsigned begin = 0;
+  unsigned end = x.size() - 1;
+  unsigned mid = end/2;
+  if (end == begin){
+    return 0;
+  }
+  while (end - begin > 1){
+    if (xx < x[mid]){
+      end = mid;
+      mid = (begin + end) / 2;
+    }
+    else{
+      begin = mid;
+      mid = (begin + end) / 2;
+    }
+  }
+  return p[begin].value(xx);
+}
+
 double PiecewisePoly::value (const double & xx,
 			     unsigned & begin,
 			     unsigned & end) const
@@ -83,6 +112,46 @@ void PiecewisePoly::value (const std::vector<double > & r,
   value (0, x.size()-1, r, 0, r.size()-1, y);
 }
 
+// suppose that
+void PiecewisePoly::value_periodic (const std::vector<double > & r,
+				    std::vector<double > & y) const
+{
+  std::vector<double > tmpr;
+  std::vector<double > tmpy;
+  std::vector<std::vector<double > > values;
+  unsigned presentEnd(0), presentStart(0);
+  double T = x.back() - x.front();
+  
+  while (presentEnd < r.size()){
+    tmpr.clear();
+    presentStart = presentEnd;
+    double shift = 0;
+    if (r[presentStart] < x.front()){
+      while (r[presentStart] + (shift += T) < x.front());
+    }
+    else if (r[presentStart] >= x.back()){
+      while (r[presentStart] + (shift -= T) >= x.back());
+    }
+    while (presentEnd < r.size() && 
+	   r[presentEnd] + shift >= x.front() &&
+	   r[presentEnd] + shift <  x.back()){
+      tmpr.push_back (r[presentEnd++] + shift);
+    }
+    // while (presentEnd < r.size() && r[presentEnd] - r[presentStart] < T){
+    //   tmpr.push_back (r[presentEnd++]);
+    // }
+    // for (unsigned i = 0; i < tmpr.size(); ++i){
+    //   tmpr[i] += shift;
+    // }
+    value (tmpr, tmpy);
+    values.push_back (tmpy);
+  }
+
+  y.clear();
+  for (unsigned i = 0; i < values.size(); ++i){
+    y.insert(y.end(), values[i].begin(), values[i].end());
+  }
+}
 
 
 Poly & Poly::valueLinearPoly (const double & a_, const double & b_,

@@ -64,8 +64,11 @@ public:
   bool valid () const;
 public:
   double value (const double & r) const;
-  void value (const std::vector<double > & r,
-	      std::vector<double > & y) const;
+  void   value (const std::vector<double > & r,
+		std::vector<double > & y) const;
+  double value_periodic (const double & r) const;
+  void   value_periodic (const std::vector<double > & r,
+			 std::vector<double > & y) const;
 }
     ;
 
