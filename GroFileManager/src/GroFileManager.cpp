@@ -235,7 +235,10 @@ void GroFileManager::write (const std::string & name ,
   fprintf (fp, "\n%d\n", resdindex.size());
   for (int i = 0; i < int(resdindex.size()); ++i){
     fprintf (fp, "%5d%5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f\n",
-	     resdindex[i], (char *)(resdname[i].c_str()), (char *)(atomname[i].c_str()), atomindex[i], 
+	     resdindex[i] % 100000,
+	     (char *)(resdname[i].c_str()),
+	     (char *)(atomname[i].c_str()),
+	     atomindex[i] % 100000, 
 	     posi[i][0], posi[i][1], posi[i][2],
 	     velo[i][0], velo[i][1], velo[i][2]);
   }
