@@ -232,7 +232,7 @@ void GroFileManager::write (const std::string & name ,
   }
   // std::copy (atomname.begin(), atomname.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
   
-  fprintf (fp, "\n%d\n", resdindex.size());
+  fprintf (fp, "\n%d\n", int(resdindex.size()));
   for (int i = 0; i < int(resdindex.size()); ++i){
     fprintf (fp, "%5d%5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f\n",
 	     resdindex[i] % 100000,
