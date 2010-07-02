@@ -78,7 +78,7 @@ define make-depend
 endef
 # $(call make-target,target,object-files-or-lib-files)
 define make-target
-  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) -lfftw3 
+  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) 
 endef
 
 
