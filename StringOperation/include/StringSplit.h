@@ -31,7 +31,8 @@ split (const std::string & in,
   // 	    std::istream_iterator<std::string>(),
   // 	    std::back_inserter<std::vector<std::string> >(tokens));
   } while (iss);
-  
+
+  out.pop_back();
 }
 
 
