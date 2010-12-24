@@ -13,6 +13,8 @@ namespace RandomGenerator_MT19937{
     double genrand_real2(void); // in [0,1)
     double genrand_real3(void); // in (0,1)
     double genrand_res53(void);
+  double gaussian ();		// Box Muller
+  void sphere (double & x, double & y, double & z);
 }
 
 

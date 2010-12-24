@@ -174,3 +174,33 @@ double RandomGenerator_MT19937::genrand_res53(void)
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
 
+double RandomGenerator_MT19937::
+gaussian ()
+{
+  double x1 = genrand_real1();
+  double x2 = genrand_real1();
+  return sqrt(-2. * log(x1)) * cos(2 * M_PI * x2);
+}
+
+void RandomGenerator_MT19937::
+sphere (double & x, double & y, double & z)
+{
+  bool no = true;
+  while (no) {
+    x = genrand_real3() - 0.5;
+    y = genrand_real3() - 0.5;
+    z = genrand_real3() - 0.5;
+    x *= 2.;
+    y *= 2.;
+    z *= 2.;
+    double r = x*x + y*y + z*z;
+    r = sqrt(r);
+    if (r < 0.8 && r > 0.3){
+      no = false;
+      x /= r;
+      y /= r;
+      z /= r;
+    }
+  }
+}
+
