@@ -51,8 +51,3 @@ int CholeskySolver<double >::solve (const std::vector<double > & rhs, std::vecto
   return info;
 }
 
-int main(int argc, char * argv[])
-{
-  return 0;
-}
-

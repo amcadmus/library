@@ -29,8 +29,8 @@ int main(int argc, char * argv[])
 {
   BisectEqnSolver<double, double, TYPE_PDF> solver;
   double x;
-  solver.solve (f, 2., 4., 1e-7, x);
-  std::cout << "result is " << x - M_PI << std::endl;
+  solver.solve (f, -0.1, 0.4, 1e-7, x);
+  std::cout << "result is " << x  << std::endl;
 
   return 0;
 }
