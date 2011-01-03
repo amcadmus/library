@@ -4,9 +4,9 @@
 #include <vector>
 #include <stdio.h>
 
+#include "Target.h"
+
 typedef  double ScalorType;
-
-
 
 class OptimizationCounter 
 {
