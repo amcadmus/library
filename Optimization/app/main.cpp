@@ -83,7 +83,8 @@ int main(int argc, char * argv[])
   
   SpeedestDescent sd;
   NewtonInteration ni;
-  
-  ni.findMin (f, control, x, &oc);
+
+  control.printDetail = true;
+  sd.findMin (f, control, x, &oc);
   oc.print();
 }
