@@ -1,4 +1,5 @@
 #include "RandomGenerator.h"
+#include <cmath>
 
 /* 
    A C-program for MT19937, with initialization improved 2002/1/26.
@@ -177,8 +178,10 @@ double RandomGenerator_MT19937::genrand_res53(void)
 double RandomGenerator_MT19937::
 gaussian ()
 {
-  double x1 = genrand_real1();
-  double x2 = genrand_real1();
+  double x1 = genrand_real2();  //  [0,1)
+  double x2 = genrand_real2();  //  [0,1)
+  x1 = 1. - x1;
+  x2 = 1. - x2;
   return sqrt(-2. * log(x1)) * cos(2 * M_PI * x2);
 }
 
