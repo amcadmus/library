@@ -9,6 +9,13 @@ CellList (const unsigned & numAtom,
   reinit (numAtom, box_, cellSize_);
 }
 
+CellList::
+CellList (const VectorType & box_,
+	  const ValueType & cellSize_)
+{
+  reinit (box_, cellSize_);
+}
+
 void CellList::
 reinit (const unsigned & numAtom,
 	const VectorType & box_,
@@ -44,6 +51,38 @@ reinit (const unsigned & numAtom,
     // std::cout << "the capacity is " << list[i].capacity() << std::endl;
   }
 }
+
+void CellList::
+reinit (const VectorType & box_,
+	const ValueType & cellSize_)
+{
+  box = box_;
+  cellSize.x = cellSize_;
+  cellSize.y = cellSize_;
+  cellSize.z = cellSize_;
+  nCell.x = box.x / cellSize.x;
+  nCell.y = box.y / cellSize.y;
+  nCell.z = box.z / cellSize.z;
+  cellSize.x = box.x / ValueType(nCell.x);
+  cellSize.y = box.y / ValueType(nCell.y);
+  cellSize.z = box.z / ValueType(nCell.z);
+
+  list.clear ();
+  if (nCell.x <= 1 || nCell.y <= 1 || nCell.z <=1){
+    std::cerr << "number of cell on each diretion should be no less than 1. do nothing" << std::endl;
+    return ;
+  }
+  
+  // numInCell.resize (nCell.x * nCell.y * nCell.z);
+  // std::fill (numInCell.begin(), numInCell.end(), 0);
+  list.resize (nCell.x * nCell.y * nCell.z);
+
+  for (unsigned i = 0; i < unsigned(nCell.x * nCell.y * nCell.z); ++i){
+    list[i].clear ();
+    // std::cout << "the capacity is " << list[i].capacity() << std::endl;
+  }
+}
+
 
 bool CellList::
 isEmpty () const
@@ -89,6 +128,44 @@ calCellIndex (const std::vector<ValueType > & coord) const
     iz = nCell.z - 1;
   }
   return index3to1 (ix, iy, iz);
+}
+
+
+std::vector<unsigned > CellList::
+neighboringCellIndex (const unsigned cellIndex,
+		      const IntVectorType nNei_)
+{
+  std::vector<unsigned > cells;
+  IntVectorType nNei (nNei_);
+  if (nNei.x > ((nCell.x - 1) >> 1)) nNei.x = ((nCell.x - 1) >> 1);
+  if (nNei.y > ((nCell.y - 1) >> 1)) nNei.y = ((nCell.y - 1) >> 1);
+  if (nNei.z > ((nCell.z - 1) >> 1)) nNei.z = ((nCell.z - 1) >> 1);
+
+  IntVectorType refIdx, tgtIdx;
+  index1to3 (cellIndex, refIdx.x, refIdx.y, refIdx.z);
+
+  IntVectorType dd;
+  for (dd.x = -nNei.x; dd.x <= nNei.x; ++dd.x){
+    tgtIdx.x = refIdx.x + dd.x;
+    if (tgtIdx.x < 0) tgtIdx.x += nCell.x;
+    else if (tgtIdx.x >= nCell.x) tgtIdx.x -= nCell.x;
+    for (dd.y = -nNei.y; dd.y <= nNei.y; ++dd.y){
+      tgtIdx.y = refIdx.y + dd.y;
+      if (tgtIdx.y < 0) tgtIdx.y += nCell.y;
+      else if (tgtIdx.y >= nCell.y) tgtIdx.y -= nCell.y;
+      for (dd.z = -nNei.z; dd.z <= nNei.z; ++dd.z){
+	tgtIdx.z = refIdx.z + dd.z;
+	if (tgtIdx.z < 0) tgtIdx.z += nCell.z;
+	else if (tgtIdx.z >= nCell.z) tgtIdx.z -= nCell.z;
+	if (0 == dd.x && 0 == dd.y && 0 == dd.z) continue;
+	cells.push_back (index3to1(tgtIdx.x, tgtIdx.y, tgtIdx.z));
+      }
+    }
+  }
+  // count the cell itself
+  cells.push_back (cellIndex);
+  
+  return cells;
 }
 
 
