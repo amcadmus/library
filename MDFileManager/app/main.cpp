@@ -20,19 +20,25 @@ int main(int argc, char * argv[])
 {
   TrajLoader traj;
 
+  std::cout << traj.getBox()[0] << std::endl;
+  std::cout << traj.getBox()[1] << std::endl;
+  std::cout << traj.getBox()[2] << std::endl;
+  std::cout << traj.getTime() << std::endl;
+
   traj.reinit ("traj.xtc");
 
-  std::cout << traj.getBox().x << std::endl;
-  std::cout << traj.getBox().x << std::endl;
-  std::cout << traj.getBox().x << std::endl;
+  std::cout << endl;
+  std::cout << traj.getBox()[0] << std::endl;
+  std::cout << traj.getBox()[1] << std::endl;
+  std::cout << traj.getBox()[2] << std::endl;
   std::cout << traj.getTime() << std::endl;
 
   traj.load ();
 
   std::cout << endl;
-  std::cout << traj.getBox().x << std::endl;
-  std::cout << traj.getBox().x << std::endl;
-  std::cout << traj.getBox().x << std::endl;
+  std::cout << traj.getBox()[0] << std::endl;
+  std::cout << traj.getBox()[1] << std::endl;
+  std::cout << traj.getBox()[2] << std::endl;
   std::cout << traj.getTime() << std::endl;
 
   // traj.load ();

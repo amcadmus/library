@@ -17,7 +17,7 @@ clear ()
 TrajLoader::
 TrajLoader ()
     : time (0.),
-      box (0.,0.,0.),
+      box (vector<double > (3, 0.)),
       inited (false)
 {
 }
@@ -31,7 +31,7 @@ TrajLoader::
 TrajLoader::
 TrajLoader (const char * filename)
     : time (0.),
-      box (0.,0.,0.),
+      box (vector<double > (3, 0.)),
       inited (false)
 {
   reinit (filename);
@@ -51,7 +51,7 @@ reinit (const char * filename)
   read_xtc_natoms (tmpname, &natoms);
   step = 0;
   time = 0.;
-  box = VectorType (0.,0.,0.);
+  box = vector<double > (3, 0.);
   xx = (rvec *) malloc (sizeof(rvec) * natoms);
   prec = 1000.;
 
@@ -76,9 +76,9 @@ load ()
   if (inited){
     matrix tmpBox;
     int st = read_xtc (xd, natoms, &step, &time, tmpBox, xx, &prec);
-    box.x = tmpBox[0][0];
-    box.y = tmpBox[1][1];
-    box.z = tmpBox[2][2];
+    box[0] = tmpBox[0][0];
+    box[1] = tmpBox[1][1];
+    box[2] = tmpBox[2][2];
     if (st == exdrOK) return true;
     else return false;
   }

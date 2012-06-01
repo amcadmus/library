@@ -1,7 +1,7 @@
 #ifndef __MDFileManager_Trajectory_h_wanghan__
 #define __MDFileManager_Trajectory_h_wanghan__
 
-#include "Defines.h"
+// #include "Defines.h"
 #include "xdrfile/xdrfile.h"
 #include "xdrfile/xdrfile_xtc.h"
 #include <vector> 
@@ -14,7 +14,7 @@ class TrajLoader
   int natoms;
   int step;
   float time;
-  VectorType box;
+  vector<double > box;
   rvec * xx;
   float prec;
   bool inited;
@@ -26,7 +26,7 @@ public:
   bool reinit (const char * filename);
   bool load ();
 public:
-  VectorType getBox () const {return box;}
+  const vector<double > & getBox () const {return box;}
   float getTime () const {return time;}
 public:
   void getFrame (vector<vector<double > > & frame);
