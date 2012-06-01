@@ -2,53 +2,68 @@
 #tmp_sources :=	$(wildcard *.cpp)
 #MKL_INCLUDE=	/home/wang/intel/mkl/8.0.1/include
 #MKL_LINK= 	-L/home/wang/intel/mkl/8.0.1/lib/32 -lmkl_lapack -lmkl_ia32 -lguide -lpthread 
-boost-include-path=	/people/thnfs/homes/wanghan/local/include/boost-1_36
-boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
-boost-lib-option=	-lboost_program_options
+# boost-include-path=	/people/thnfs/homes/wanghan/local/include/boost-1_36
+# boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
+# boost-lib-option=	-lboost_program_options
 
-install_base_dir=	/home/wanghan/
-
-sources := 	$(wildcard src/*.cpp)
-heads :=	$(wildcard include/*.h)
-tmp_sources =  	$(notdir $(sources))
-tmp_depends = 	$(subst .cpp,.d,$(tmp_sources))
-tmp_objects = 	$(subst .cpp,.o,$(tmp_sources))
-
-sources_dir =	src
-depends_dir = 	depends
-objects_dir = 	lib
 include_dirs = 	./include $(MKL_INCLUDE) $(boost-include-path)
-vpath %.h 	$(include_dirs)
-#vpath %.cpp 	$(sources_dir)
-#vpath %.d	$(depends_dir)
-#vpath %.o	$(objects_dir)
 
-#sources = 	$(addprefix $(sources_dir)/,$(tmp_sources))
-depends = 	$(addprefix $(depends_dir)/,$(tmp_depends))
-objects = 	$(addprefix $(objects_dir)/,$(tmp_objects))
+sources_dir =		src
+application_dir=	app
+application_target=	$(notdir $(subst .cpp,,$(wildcard $(application_dir)/*.cpp)))
+cppsources := 		$(wildcard $(sources_dir)/*.cpp)
+tmp_cppsources =  	$(notdir $(cppsources))
+tmp_cppdepends = 	$(subst .cpp,.d,$(tmp_cppsources))
+tmp_cppobjects = 	$(subst .cpp,.o,$(tmp_cppsources))
+
+csources := 		$(wildcard $(sources_dir)/*.c)
+tmp_csources =  	$(notdir $(csources))
+tmp_cdepends = 		$(subst .c,.d,$(tmp_csources))
+tmp_cobjects = 		$(subst .c,.o,$(tmp_csources))
+
+cppdepends_dir = 	.depends/cpp
+cppobjects_dir = 	lib/cpp
+cdepends_dir = 		.depends/c
+cobjects_dir = 		lib/c
+vpath %.h 		$(include_dirs)
+
+cppdepends = 	$(addprefix $(cppdepends_dir)/,$(tmp_cppdepends))
+cppobjects = 	$(addprefix $(cppobjects_dir)/,$(tmp_cppobjects))
+
+cdepends = 	$(addprefix $(cdepends_dir)/,$(tmp_cdepends))
+cobjects = 	$(addprefix $(cobjects_dir)/,$(tmp_cobjects))
+
+
+C:=		gcc
+CFLAGS +=	-g -O0 -Wall 
+CFLAGS += 	$(addprefix -I ,$(include_dirs))
 
 CXX:=		g++
-CXXFLAGS +=	-g -O3 -Wall -march=i686 -DVERBOSE_INFO
 CXXFLAGS += 	$(CFLAGS)
-CXXFLAGS += 	$(addprefix -I ,$(include_dirs))
 
-target:		$(objects_dir)/libGroFileManager.a
+target:		$(application_target)
 
-$(objects_dir)/libGroFileManager.a: $(objects)
-	ar cr $@ $^
+%:	$(cobjects) $(cppobjects) $(application_dir)/%.o
+	$(call make-target,$@,$^)
 
 .PHONY: clean
 clean:
-	rm -f $(objects) $(depends) 
+	rm -f $(application_target) $(cobjects) $(cdepends) $(cppobjects) $(cppdepends)  $(application_dir)/*.o $(application_dir)/*.d
 
-install:
-	rm -f $(install_base_dir)/$(heads) ;			\
-	rm -f $(install_base_dir)/lib/libGroFileManager.a;	\
-	cp -f lib/libGroFileManager.a $(install_base_dir)/lib; 	\
-	cp -f include/*.h $(install_base_dir)/include;		
+.PHONY: makedir
+makedir:
+	test -d $(cppdepends_dir) || mkdir -p $(cppdepends_dir)	
+	test -d $(cppobjects_dir) || mkdir -p $(cppobjects_dir)
+	test -d $(cdepends_dir) || mkdir -p $(cdepends_dir)
+	test -d $(cobjects_dir) || mkdir -p $(cobjects_dir)
+	test -d $(sources_dir) || mkdir -p $(sources_dir)
+	test -d $(application_dir) || mkdir -p $(application_dir)
+	test -d include || mkdir -p include
 
 ifneq "$(MAKECMDGOALS)" "clean"
--include $(depends)
+-include $(cppdepends)
+-include $(cdepends)
+-include $(addprefix $(application_dir)/,$(notdir $(subst .cpp,.d,$(wildcard $(application_dir)/*.cpp))))
 endif
 
 # $(call make-depend,source-file,object-file,depend-file)
@@ -63,13 +78,19 @@ define make-depend
 endef
 # $(call make-target,target,object-files-or-lib-files)
 define make-target
-  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) -lfftw3 -L$(boost-lib-path) $(boost-lib-option)
+  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) ~/local/lib/libxdrfile.a
 endef
 
 
-$(objects_dir)/%.o:	$(sources_dir)/%.cpp
-	$(call make-depend,$<,$@,$(depends_dir)/$(notdir $(subst .o,.d,$@)))
-	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+$(cppobjects_dir)/%.o:	$(sources_dir)/%.cpp
+	$(call make-depend,$<,$@,$(cppdepends_dir)/$(notdir $(subst .o,.d,$@)))
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<	
+$(cobjects_dir)/%.o:	$(sources_dir)/%.c
+	$(call make-depend,$<,$@,$(cdepends_dir)/$(notdir $(subst .o,.d,$@)))
+	$(COMPILE.c) $(OUTPUT_OPTION) $<	
+$(application_dir)/%.o:	$(application_dir)/%.cpp
+	$(call make-depend,$<,$@,$(application_dir)/$(notdir $(subst .o,.d,$@)))
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<	
 
 
 
