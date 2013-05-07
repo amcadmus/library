@@ -164,6 +164,9 @@ neighboringCellIndex (const unsigned cellIndex,
   }
   // count the cell itself
   cells.push_back (cellIndex);
+
+  std::sort (cells.begin(), cells.end());
+  std::unique (cells.begin(), cells.end());
   
   return cells;
 }
