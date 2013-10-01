@@ -8,32 +8,92 @@
 #include <vector>
 #include <cmath>
 
+
+#define MAX_LINE_LENGTH 2048
+#define MAX_NAME_LENGTH 32
+
 using namespace std;
 
 namespace GmxTop {
   struct gmx_atom
   {
-    double	charge;
-    double	mass;
-    string	name;
-    string	type;
-    int		cgnr;
+    int			id;
+    string		at_type;
+    int			res_nr;
+    string		res_name;
+    string		at_name;
+    int			cgnr;
+    double		charge;
+    double		mass;
     gmx_atom ();
-    void clear ();
+    void		clear ();    
+    void		print (FILE * fp) const;
   }
       ;
 
+  struct gmx_pairs_item
+  {
+    int			ii;
+    int			jj;
+    int			funct;
+    vector<double >	params;
+    void		print (FILE * fp) const;
+  }
+      ;
+
+  struct gmx_bonds_item
+  {
+    int			ii;
+    int			jj;
+    int			funct;
+    vector<double >	params;
+    void		print (FILE * fp) const;
+  }
+      ;
+
+  struct gmx_angles_item
+  {
+    int			ii;
+    int			jj;
+    int			kk;
+    int			funct;
+    vector<double >	params;
+    void		print (FILE * fp) const;
+  }
+      ;
+
+  struct gmx_dihedrals_item
+  {
+    int			ii;
+    int			jj;
+    int			kk;
+    int			ll;
+    int			funct;
+    vector<double >	params;
+    void		print (FILE * fp) const;
+  }
+      ;
+
+  
   struct gmx_mol
   {
-    string		name;
-    vector<gmx_atom>	atoms;
+    string			name;
+    int				nexcl;
+    vector<gmx_atom>		atoms;
+    vector<gmx_pairs_item>	pairs;
+    vector<gmx_bonds_item>	bonds;
+    vector<gmx_angles_item>	angles;
+    vector<gmx_dihedrals_item>	dihedrals;
+    void		print (FILE * fp) const;
   }
       ;
 
   struct gmx_sys_top
   {
+    string		sys_name;
     vector<gmx_mol>	moles;
     vector<int>		numMol;
+    void		print (FILE * fp) const;
   }
       ;
 
