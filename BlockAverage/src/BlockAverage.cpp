@@ -53,4 +53,48 @@ processData (const std::vector<double > & vec,
 }
 
 
+void BlockAverage_acc::
+clear ()
+{
+  sum = blockSum2 = currentBlockSum = 0.;
+  nBlock = currentNDataInBlock = 0;
+}
+
+void BlockAverage_acc::
+reinit (const unsigned & nDataInBlock_)
+{
+  clear ();
+  avg = error_avg = 0.;
+  nDataInBlock = nDataInBlock_;
+}
+
+BlockAverage_acc::
+BlockAverage_acc (const unsigned & nDataInBlock_)
+{
+  reinit (nDataInBlock_);
+}
+
+void BlockAverage_acc::
+deposite (const double & vv)
+{
+  currentBlockSum += vv;
+  currentNDataInBlock ++;
+  if (currentNDataInBlock == nDataInBlock){
+    currentBlockSum /= double (currentNDataInBlock);
+    sum += currentBlockSum;
+    blockSum2 += currentBlockSum * currentBlockSum;
+    nBlock ++;
+    currentBlockSum = 0.;
+    currentNDataInBlock = 0;
+  }
+}
+
+void BlockAverage_acc::
+calculate ()
+{
+  avg = sum / double (nBlock);
+  error_avg = ( blockSum2 - double(nBlock) * avg * avg ) / (double(nBlock) - 1.) / double(nBlock);
+  error_avg = sqrt(error_avg);
+}
+
 

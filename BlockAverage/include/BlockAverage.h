@@ -27,4 +27,29 @@ public:
 };
 
 
+class BlockAverage_acc
+{
+  double avg;
+  double error_avg;
+  unsigned nDataInBlock;
+private:
+  double sum;
+  double blockSum2;
+  unsigned nBlock;
+  double currentBlockSum;
+  unsigned currentNDataInBlock;
+public:
+  BlockAverage_acc (const unsigned & nDataInBlock_);
+  void clear ();
+  void reinit (const unsigned & nDataInBlock_);
+public:
+  void deposite (const double & vv);
+  void calculate ();  
+  double getAvg () const {return avg;}
+  double getAvgError () const {return error_avg;}  
+  unsigned getNumDataUsed () const {return nBlock * nDataInBlock;}
+}
+    ;
+
+
 #endif
