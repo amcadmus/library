@@ -78,6 +78,29 @@ notTrivalLine (const string & line)
   return false;
 }
 
+
+static void
+unfoldLines (vector<vector<string > > & lines)
+{
+  vector<vector<string > > tmplines (lines);
+  lines.clear ();
+
+  for (unsigned ii = 0; ii < tmplines.size(); ++ii){
+    vector<string > blockline;
+    for (unsigned jj = 0; jj < tmplines[ii].size(); ++jj){
+      if (blockline.size() != 0 && blockline.back()[blockline.back().size()-1] == '\\'){
+	blockline.back().erase(blockline.back().size()-1);
+	blockline.back().push_back(' ');
+	blockline.back() += tmplines[ii][jj];
+      }
+      else {
+	blockline.push_back (tmplines[ii][jj]);
+      }
+    }
+    lines.push_back (blockline);
+  }
+}
+
 static void 
 readBlocks (ifstream & file,
 	    vector<string> & keys,
@@ -90,12 +113,11 @@ readBlocks (ifstream & file,
   
   while (! file.eof() ){
     file.getline (line, MAX_LINE_LENGTH);
-    
+    normalizeLine (line);
     // cout << line <<endl;
     
     if (!inBlock){
       if (ifKeyWord(line, tmpKey)){
-	normalizeLine (line);
 	inBlock = true;
 	// keys.push_back ("");
 	keys.push_back (tmpKey);
@@ -103,24 +125,23 @@ readBlocks (ifstream & file,
 	blockLines.clear ();
       }
       else if (notTrivalLine(line)) {
-	normalizeLine (line);
 	blockLines.push_back(line);	
       }
     }
     else {
       if (ifKeyWord(line, tmpKey)){
-	normalizeLine (line);
 	keys.push_back (tmpKey);
 	lines.push_back (blockLines);
 	blockLines.clear ();	
       }
       else if (notTrivalLine(line)){
-	normalizeLine (line);
 	blockLines.push_back(line);
       }
     }
   }
   lines.push_back (blockLines);
+
+  unfoldLines (lines);
 }
 
 
@@ -164,8 +185,14 @@ clear ()
 void GmxTop::gmx_atom::
 print (FILE * fp) const
 {
-  fprintf (fp, "%d\t%s\t%d\t%s\t%s\t%d\t%f\t%f\n",
-	   id, at_type.c_str(), res_nr, res_name.c_str(), at_name.c_str(), cgnr, charge, mass);
+  if (mass <= 0){
+    fprintf (fp, "%d\t%s\t%d\t%s\t%s\t%d\t%f\n",
+	     id, at_type.c_str(), res_nr, res_name.c_str(), at_name.c_str(), cgnr, charge);
+  }
+  else {
+    fprintf (fp, "%d\t%s\t%d\t%s\t%s\t%d\t%f\t%f\n",
+	     id, at_type.c_str(), res_nr, res_name.c_str(), at_name.c_str(), cgnr, charge, mass);
+  }
 }
 
 void GmxTop::gmx_pairs_item::
@@ -173,7 +200,17 @@ print (FILE * fp) const
 {
   fprintf (fp, "%d\t%d\t%d", ii, jj, funct);
   for (unsigned ii = 0; ii < params.size(); ++ii){
-    fprintf (fp, "\t%f", params[ii]);
+    fprintf (fp, "\t%.10e", params[ii]);
+  }
+  fprintf (fp, "\n");
+}
+
+void GmxTop::gmx_exclusions_item::
+print (FILE * fp) const
+{
+  fprintf (fp, "%d", ii);
+  for (unsigned ii = 0; ii < params.size(); ++ii){
+    fprintf (fp, "\t%d", params[ii]);
   }
   fprintf (fp, "\n");
 }
@@ -183,7 +220,7 @@ print (FILE * fp) const
 {
   fprintf (fp, "%d\t%d\t%d", ii, jj, funct);
   for (unsigned ii = 0; ii < params.size(); ++ii){
-    fprintf (fp, "\t%f", params[ii]);
+    fprintf (fp, "\t%.10e", params[ii]);
   }
   fprintf (fp, "\n");
 }
@@ -193,7 +230,7 @@ print (FILE * fp) const
 {
   fprintf (fp, "%d\t%d\t%d\t%d", ii, jj, kk, funct);
   for (unsigned ii = 0; ii < params.size(); ++ii){
-    fprintf (fp, "\t%f", params[ii]);
+    fprintf (fp, "\t%.10e", params[ii]);
   }
   fprintf (fp, "\n");
 }
@@ -202,8 +239,38 @@ void GmxTop::gmx_dihedrals_item::
 print (FILE * fp) const
 {
   fprintf (fp, "%d\t%d\t%d\t%d\t%d", ii, jj, kk, ll, funct);
+  if (funct == 1 || funct == 4 || funct == 9){
+    for (unsigned ii = 0; ii < params.size() - 1; ++ii){
+      fprintf (fp, "\t%.10e", params[ii]);
+    }
+    fprintf (fp, "\t%d", int(params.back() + 0.5));
+  }
+  else{
+    for (unsigned ii = 0; ii < params.size(); ++ii){
+      fprintf (fp, "\t%.10e", params[ii]);
+    }
+    fprintf (fp, "\n");
+  }
+}
+
+GmxTop::gmx_cmap_item::
+gmx_cmap_item ()
+    : funct (0), ngrid0(0), ngrid1(0)
+{
+}
+
+void GmxTop::gmx_cmap_item::
+print (FILE * fp) const
+{
+  fprintf (fp, "%d\t%d\t%d\t%d\t%d\t%d", ii, jj, kk, ll, mm, funct);
+  if (ngrid0 != 0) {
+    fprintf (fp, "\t%d", ngrid0);
+  }
+  if (ngrid1 != 0) {
+    fprintf (fp, "\t%d", ngrid1);
+  }
   for (unsigned ii = 0; ii < params.size(); ++ii){
-    fprintf (fp, "\t%f", params[ii]);
+    fprintf (fp, "\t%.10e", params[ii]);
   }
   fprintf (fp, "\n");
 }
@@ -234,6 +301,13 @@ print (FILE * fp) const
     }
     fprintf (fp, "\n");
   }
+  if (exclusions.size() > 0) {
+    fprintf (fp, "[ exclusions ]\n");
+    for (unsigned ii = 0; ii < exclusions.size(); ++ii){
+      exclusions[ii].print (fp);
+    }
+    fprintf (fp, "\n");
+  }
   if (angles.size() > 0) {
     fprintf (fp, "[ angles ]\n");
     for (unsigned ii = 0; ii < angles.size(); ++ii){
@@ -245,6 +319,13 @@ print (FILE * fp) const
     fprintf (fp, "[ dihedrals ]\n");
     for (unsigned ii = 0; ii < dihedrals.size(); ++ii){
       dihedrals[ii].print (fp);
+    }
+    fprintf (fp, "\n");
+  }  
+  if (cmap.size() > 0) {
+    fprintf (fp, "[ cmap ]\n");
+    for (unsigned ii = 0; ii < cmap.size(); ++ii){
+      cmap[ii].print (fp);
     }
     fprintf (fp, "\n");
   }  
@@ -311,6 +392,13 @@ print (FILE * fp) const
     fprintf (fp, "[ dihedraltypes ]\n");
     for (unsigned ii = 0; ii < dihedraltypes.size(); ++ii){
       dihedraltypes[ii].print (fp);
+    }
+    fprintf (fp, "\n");
+  }
+  if (cmaptypes.size() > 0){
+    fprintf (fp, "[ cmaptypes ]\n");
+    for (unsigned ii = 0; ii < cmaptypes.size(); ++ii){
+      cmaptypes[ii].print (fp);
     }
     fprintf (fp, "\n");
   }
@@ -409,6 +497,18 @@ parseTop (const string & fname,
 	    tmpmol.pairs.push_back(tmp);
 	  } 
 	}
+	if (keys[kk] == "exclusions"){
+	  for (unsigned ll = 0; ll < lines[kk].size(); ++ll){
+	    StringOperation::split (lines[kk][ll], words);
+	    gmx_exclusions_item tmp;
+	    if (words.size () < 2) die_wrong_format (__FILE__, __LINE__);
+	    tmp.ii = atoi(words[0].c_str());
+	    for (unsigned mm = 1; mm < words.size(); ++mm){
+	      tmp.params.push_back (atof(words[mm].c_str()));
+	    }
+	    tmpmol.exclusions.push_back(tmp);
+	  } 
+	}
 	if (keys[kk] == "bonds"){
 	  for (unsigned ll = 0; ll < lines[kk].size(); ++ll){
 	    StringOperation::split (lines[kk][ll], words);
@@ -452,6 +552,29 @@ parseTop (const string & fname,
 	      tmp.params.push_back (atof(words[mm].c_str()));
 	    }
 	    tmpmol.dihedrals.push_back(tmp);
+	  } 
+	}
+	if (keys[kk] == "cmap"){
+	  for (unsigned ll = 0; ll < lines[kk].size(); ++ll){
+	    StringOperation::split (lines[kk][ll], words);
+	    gmx_cmap_item tmp;
+	    if (words.size () < 6) die_wrong_format (__FILE__, __LINE__);
+	    tmp.ii = atoi(words[0].c_str());
+	    tmp.jj = atoi(words[1].c_str());
+	    tmp.kk = atoi(words[2].c_str());
+	    tmp.ll = atoi(words[3].c_str());
+	    tmp.mm = atoi(words[4].c_str());
+	    tmp.funct = atoi(words[5].c_str());
+	    if (words.size() >= 7){
+	      tmp.ngrid0 = atoi(words[6].c_str());
+	    }
+	    if (words.size() >= 8){	    
+	      tmp.ngrid1 = atoi(words[7].c_str());
+	    }
+	    for (unsigned mm = 8; mm < words.size(); ++mm){
+	      tmp.params.push_back (atof(words[mm].c_str()));
+	    }
+	    tmpmol.cmap.push_back(tmp);
 	  } 
 	}
       }
@@ -527,8 +650,8 @@ parseType (const string & fname,
 	gmx_atomtypes_item tmp;
 	tmp.name = words[0];
 	tmp.atom_num = atoi(words[1].c_str());
-	tmp.mass = atoi(words[2].c_str());
-	tmp.charge = atoi(words[3].c_str());
+	tmp.mass = atof(words[2].c_str());
+	tmp.charge = atof(words[3].c_str());
 	tmp.ptype = string(words[4].c_str());
 	tmp.c6 = atof(words[5].c_str());
 	tmp.c12 = atof(words[6].c_str());
@@ -624,6 +747,28 @@ parseType (const string & fname,
       }
     }
   }
+
+  for (unsigned ii = 0; ii < keys.size(); ++ii){
+    if (keys[ii] == "cmaptypes"){
+      for (unsigned jj = 0; jj < lines[ii].size(); ++jj){
+	StringOperation::split (lines[ii][jj], words);
+	if (words.size() < 8) die_wrong_format (__FILE__, __LINE__);
+	gmx_cmaptypes_item tmp;
+	tmp.name0 = words[0];
+	tmp.name1 = words[1];
+	tmp.name2 = words[2];
+	tmp.name3 = words[3];
+	tmp.name4 = words[4];
+	tmp.funct = atoi(words[5].c_str());
+	tmp.ngrid0 = atoi(words[6].c_str());
+	tmp.ngrid1 = atoi(words[7].c_str());
+	for (unsigned ii = 8; ii < words.size(); ++ii){
+	  tmp.params.push_back (atof(words[ii].c_str()));
+	}
+	type.cmaptypes.push_back (tmp);
+      }
+    }
+  }
 }
 
 static void
@@ -675,7 +820,19 @@ convertType_2_1 (const gmx_sys_types	& old_types,
       tmp.params[1] = c12_01;
       new_types.nonbond_params.push_back(tmp);
     }
-  }    
+  }
+
+  for (unsigned ii = 0; ii < new_types.pairtypes.size(); ++ii){
+    if (old_types.pairtypes[ii].funct != 1){
+      cerr << "the funct of pair is not equal to 1, ignor" << endl;
+    }
+    double sigma = old_types.pairtypes[ii].params[0];
+    double eps = old_types.pairtypes[ii].params[1];
+    double c6, c12;
+    param_2_to_1 (eps, sigma, c6, c12);
+    new_types.pairtypes[ii].params[0] = c6;
+    new_types.pairtypes[ii].params[1] = c12;
+  }
 }
 
 

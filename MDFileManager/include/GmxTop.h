@@ -25,7 +25,7 @@ namespace GmxTop {
     int			cgnr;
     double		charge;
     double		mass;
-    gmx_atom ();
+    gmx_atom		();
     void		clear ();    
     void		print (FILE * fp) const;
   }
@@ -37,6 +37,14 @@ namespace GmxTop {
     int			jj;
     int			funct;
     vector<double >	params;
+    void		print (FILE * fp) const;
+  }
+      ;
+
+  struct gmx_exclusions_item
+  {
+    int			ii;
+    vector<int >	params;
     void		print (FILE * fp) const;
   }
       ;
@@ -73,7 +81,22 @@ namespace GmxTop {
     void		print (FILE * fp) const;
   }
       ;
-
+  
+  struct gmx_cmap_item
+  {
+    int			ii;
+    int			jj;
+    int			kk;
+    int			ll;
+    int			mm;
+    int			funct;
+    int			ngrid0;
+    int			ngrid1;
+    vector<double >	params;
+    gmx_cmap_item	();
+    void		print (FILE * fp) const;
+  }
+      ;
   
   struct gmx_mol
   {
@@ -81,9 +104,11 @@ namespace GmxTop {
     int				nexcl;
     vector<gmx_atom>		atoms;
     vector<gmx_pairs_item>	pairs;
+    vector<gmx_exclusions_item>	exclusions;
     vector<gmx_bonds_item>	bonds;
     vector<gmx_angles_item>	angles;
     vector<gmx_dihedrals_item>	dihedrals;
+    vector<gmx_cmap_item>	cmap;
     void		print (FILE * fp) const;
   }
       ;
