@@ -6,7 +6,7 @@
 # boost-lib-path=		/people/thnfs/homes/wanghan/local/lib
 # boost-lib-option=	-lboost_program_options
 
-include_dirs = 	./include $(MKL_INCLUDE) $(boost-include-path)
+include_dirs = 	./include $(MKL_INCLUDE) $(boost-include-path) 
 
 sources_dir =		src
 application_dir=	app
@@ -78,7 +78,7 @@ define make-depend
 endef
 # $(call make-target,target,object-files-or-lib-files)
 define make-target
-  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) 
+  $(CXX) $(CXXFLAGS) -o $1 $2 -lm $(MKL_LINK) ~/local/lib/libxdrfile.a
 endef
 
 

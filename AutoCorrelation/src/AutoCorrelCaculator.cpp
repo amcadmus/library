@@ -7,7 +7,7 @@ AutoCorrelCalculator ()
 
 AutoCorrelCalculator::
 AutoCorrelCalculator (const unsigned & ndata,
-		     const unsigned nDataInBlock)
+		      const unsigned nDataInBlock)
     : bas (ndata), traj (ndata)
 {
   for (unsigned ii = 0; ii < ndata; ++ii){
