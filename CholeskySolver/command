@@ -1,0 +1,2 @@
+g++ -g CholeskySolver.cpp -I /opt//intel/mkl/include -L /opt/intel/mkl/lib/ia32  -lmkl_intel -lmkl_sequential -lmkl_core -lmkl_sequential -lm
+
