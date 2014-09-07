@@ -1,0 +1,1 @@
+../../BlockAverage/include/BlockAverage.h
