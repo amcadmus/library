@@ -1,7 +1,7 @@
 #ifndef __Defines_h_wanghan__
 #define __Defines_h_wanghan__
 
-typedef float ValueType ;
+typedef double ValueType ;
 
 struct IntVectorType
 {

@@ -46,7 +46,7 @@ public:
   void rebuild (const std::vector<std::vector<ValueType > > & coord);
   unsigned calCellIndex (const std::vector<ValueType > & coord) const;
   std::vector<unsigned > neighboringCellIndex (const unsigned cellIndex,
-					       const IntVectorType nNei = IntVectorType(1,1,1));
+					       const IntVectorType nNei = IntVectorType(1,1,1)) const;
 }
     ;
 

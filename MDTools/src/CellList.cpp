@@ -1,6 +1,8 @@
 #include "CellList.h"
 #include <iostream>
 
+using namespace std;
+
 CellList::
 CellList (const unsigned & numAtom,
 	  const VectorType & box_,
@@ -133,13 +135,13 @@ calCellIndex (const std::vector<ValueType > & coord) const
 
 std::vector<unsigned > CellList::
 neighboringCellIndex (const unsigned cellIndex,
-		      const IntVectorType nNei_)
+		      const IntVectorType nNei_) const
 {
   std::vector<unsigned > cells;
   IntVectorType nNei (nNei_);
-  if (nNei.x > ((nCell.x - 1) >> 1)) nNei.x = ((nCell.x - 1) >> 1);
-  if (nNei.y > ((nCell.y - 1) >> 1)) nNei.y = ((nCell.y - 1) >> 1);
-  if (nNei.z > ((nCell.z - 1) >> 1)) nNei.z = ((nCell.z - 1) >> 1);
+  // if (nNei.x > ((nCell.x - 1) >> 1)) nNei.x = ((nCell.x - 1) >> 1);
+  // if (nNei.y > ((nCell.y - 1) >> 1)) nNei.y = ((nCell.y - 1) >> 1);
+  // if (nNei.z > ((nCell.z - 1) >> 1)) nNei.z = ((nCell.z - 1) >> 1);
 
   IntVectorType refIdx, tgtIdx;
   index1to3 (cellIndex, refIdx.x, refIdx.y, refIdx.z);
@@ -166,7 +168,8 @@ neighboringCellIndex (const unsigned cellIndex,
   cells.push_back (cellIndex);
 
   std::sort (cells.begin(), cells.end());
-  std::unique (cells.begin(), cells.end());
+  std::vector<unsigned >::iterator it = std::unique (cells.begin(), cells.end());
+  cells.resize (distance(cells.begin(), it));
   
   return cells;
 }
